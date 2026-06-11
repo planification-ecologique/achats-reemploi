@@ -97,11 +97,29 @@ python3 -m http.server 8000   # puis http://localhost:8000/widget_carto.html
 - **Fiche structure** au clic sur un marqueur ou un élément de la liste : présentation, puis **site internet juste après la description**, domaine(s), SIRET, catégories, activités, position dans la chaîne du réemploi, ville, département, zone d'intervention et **« Reconnaissances (labels, certifications, distinction) »**.
 - Compteur de résultats + réinitialisation.
 
+## Questionnaire de référencement (formulaire Grist natif)
+
+Le bouton « Se référencer » renvoie vers un **formulaire Grist**, construit sur une **seconde table** du même document — pas besoin d'outil tiers, tout reste dans Grist (et souverain).
+
+**Principe**
+
+1. Créer une table `Referencement` (gabarit fourni : `referencement_template.csv`).
+2. Dans Grist : **Add New → Add Page → Form** (ou **Add Widget → Form**) pointant sur cette table.
+3. Publier le formulaire → Grist fournit une **URL publique partageable**. Chaque soumission crée une ligne dans `Referencement`.
+4. Renseigner cette URL dans le widget carte via la constante `QUESTIONNAIRE_URL` (`widget_carto.html`) → le bouton « Se référencer » devient actif.
+
+**Modération avant publication sur la carte** — les soumissions publiques **n'apparaissent pas directement** sur la carte :
+
+- La table `Referencement` porte une colonne `Statut_validation` (`À vérifier` / `Validé` / `Rejeté`, *non exposée dans le formulaire*).
+- Un agent vérifie la fiche (SIRET via SIRENE, périmètre art. 58, doublons), géocode (Lat/Long) puis recopie les lignes `Validé` vers la table `Acteurs` (manuellement, ou via une formule/automatisation Grist).
+
+**Champs du formulaire** (alignés sur la fiche de présentation) : `Nom_structure`, `SIRET`, `Statut_structure`, `Domaine`, `Categorie_produits`, `Activite_structure`, `Position_chaine`, `Adresse`, `Ville`, `Departement`, `Zone_intervention`, `Site_internet`, `Presentation`, `Certifications`, plus un bloc contact (`Contact_nom`, `Contact_email`, `Contact_telephone`). Les têtes de réseau peuvent diffuser ce lien directement aux structures.
+
 ## Vues natives Grist (complément, sans code)
 
 En plus du widget, on peut configurer côté Grist : une vue **Carte** native (colonnes Latitude/Longitude), une vue **Fiche** (Card) pour la présentation détaillée, et des **filtres de vue** sur les champs ci-dessus — utile comme repli si l'hébergement du widget custom n'est pas possible dans un environnement ministériel restreint.
 
 ## Points ouverts à confirmer avec la DAE
 
-- **Questionnaire de référencement** : URL à fournir pour activer le bouton « Se référencer ».
+- **Questionnaire de référencement** : formulaire Grist à créer dans le document (gabarit + procédure ci-dessus) ; reporter l'URL publiée dans `QUESTIONNAIRE_URL`.
 - **Logo** : fournir l'asset officiel pour remplacer le SVG provisoire.
