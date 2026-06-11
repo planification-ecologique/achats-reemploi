@@ -87,6 +87,7 @@
           </div>
           <div class="grid2">
             <div class="field"><label>Domaine</label><select id="f_dom"></select></div>
+            <div class="field"><label>Source</label><select id="f_source"></select></div>
             <div class="field"><label>Pays</label><select id="f_pays"></select></div>
             <div class="field"><label>Catégorie</label><select id="f_cat"></select></div>
             <div class="field"><label>Position chaîne</label><select id="f_pos"></select></div>
@@ -130,7 +131,8 @@ const COLS = {
   lat:"Latitude", lng:"Longitude",
   // colonnes du jeu fusionné (réemploi d'emballages B2B) — optionnelles
   dom:"Domaine", pays:"Pays", region:"Region_source", typ:"Type_acteur",
-  secteur:"Secteur", offre:"Offre", emballage:"Type_emballage", materiaux:"Materiaux", cible:"Cible_client"
+  secteur:"Secteur", offre:"Offre", emballage:"Type_emballage", materiaux:"Materiaux", cible:"Cible_client",
+  source:"Source"
 };
 const MULTI = ["cat","act","certs"];
 
@@ -140,12 +142,8 @@ let cluster, map;
 let selId = null;
 
 function initMap(){
-  map = L.map("map", {scrollWheelZoom:true, preferCanvas:false, minZoom:5}).setView([46.6, 2.4], 6);
-  // Fond de carte souverain IGN — Plan IGN v2 (Géoplateforme), sobre et en français
-  L.tileLayer("https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", {
-    minZoom:5, maxZoom:18, tileSize:256,
-    attribution:'© <a href="https://www.ign.fr/" target="_blank" rel="noopener">IGN</a> — Géoplateforme'
-  }).addTo(map);
+  map = L.map("map", {scrollWheelZoom:true, preferCanvas:false, minZoom:2, worldCopyJump:true}).setView([46.6, 2.4], 6);
+  addBasemap();
   cluster = L.markerClusterGroup({maxClusterRadius:45});
   map.addLayer(cluster);
   // Fix Leaflet sizing inside resizable iframes (Grist): recompute size once laid out.
@@ -156,13 +154,35 @@ function initMap(){
 }
 function fixSize(){ if (map) map.invalidateSize(false); }
 
+// Fond de carte : Plan IGN v2 (Géoplateforme) — raster, en français, souverain.
+function addBasemap(){
+  L.tileLayer("https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", {
+    minZoom:2, maxZoom:18, tileSize:256,
+    attribution:'© <a href="https://www.ign.fr/" target="_blank" rel="noopener">IGN</a> — Géoplateforme'
+  }).addTo(map);
+}
+
+let KEYRES = {}; // résolution tolérante des noms de colonnes Grist (casse/accents)
+function deburr(s){ return String(s).normalize("NFKD").replace(/[̀-ͯ]/g,"").toLowerCase(); }
+function val(rec, colName){
+  let v = rec[colName];
+  if (v == null) { const ak = KEYRES[deburr(colName)]; if (ak) v = rec[ak]; }
+  return v;
+}
+// Grist encode les listes de choix comme ["L","a","b"] ; on normalise.
+function asList(v){
+  if (Array.isArray(v)) { const a = v[0]==="L" ? v.slice(1) : v; return a.map(x=>String(x).trim()).filter(Boolean); }
+  return String(v==null?"":v).split(";").map(s=>s.trim()).filter(Boolean);
+}
+function scalar(v){
+  if (Array.isArray(v)) return (v[0]==="L"?v.slice(1):v).join(", ");
+  return v==null ? "" : v;
+}
 function norm(rec, idx){
-  const g = k => rec[COLS[k]] != null ? rec[COLS[k]] : "";
   const o = {_id: rec.id != null ? rec.id : idx};
   for (const k in COLS){
-    let v = g(k);
-    if (MULTI.includes(k)) o[k] = String(v||"").split(";").map(s=>s.trim()).filter(Boolean);
-    else o[k] = v;
+    const v = val(rec, COLS[k]);
+    o[k] = MULTI.includes(k) ? asList(v) : scalar(v);
   }
   o.lat = parseFloat(o.lat); o.lng = parseFloat(o.lng);
   return o;
@@ -177,6 +197,7 @@ function fillSelect(id, label, values){
 }
 function buildFilters(){
   fillSelect("f_dom","Tous", uniq(DATA.map(d=>d.dom).filter(Boolean)));
+  fillSelect("f_source","Toutes", uniq(DATA.map(d=>d.source).filter(Boolean)));
   fillSelect("f_pays","Tous", uniq(DATA.map(d=>d.pays).filter(Boolean)));
   fillSelect("f_cat","Toutes", uniq(DATA.flatMap(d=>d.cat)));
   fillSelect("f_pos","Toutes", uniq(DATA.map(d=>d.pos).filter(Boolean)));
@@ -200,6 +221,7 @@ function getFilters(){
   return {
     nom: document.getElementById("f_nom").value.trim().toLowerCase(),
     dom: document.getElementById("f_dom").value, pays: document.getElementById("f_pays").value,
+    source: document.getElementById("f_source").value,
     cat: document.getElementById("f_cat").value, pos: document.getElementById("f_pos").value,
     act: document.getElementById("f_act").value, stat: document.getElementById("f_stat").value,
     zone: document.getElementById("f_zone").value, dep: document.getElementById("f_dep").value,
@@ -209,6 +231,7 @@ function match(d, f){
   if (f.nom && !String(d.nom).toLowerCase().includes(f.nom)) return false;
   if (f.dom && d.dom !== f.dom) return false;
   if (f.pays && d.pays !== f.pays) return false;
+  if (f.source && d.source !== f.source) return false;
   if (f.cat && !d.cat.includes(f.cat)) return false;
   if (f.pos && d.pos !== f.pos) return false;
   if (f.act && !d.act.includes(f.act)) return false;
@@ -315,37 +338,50 @@ function showDetail(d){
     ${r("Pays", d.pays)}
     ${r("Zone", d.zone)}
     ${rc("Labels", d.certs)}
+    ${r("Source", d.source)}
     ${site}`;
   el.querySelector(".close").onclick=()=>{el.style.display="none";};
   el.style.display="block";
 }
 
-["f_nom","f_dom","f_pays","f_cat","f_pos","f_act","f_stat","f_zone","f_dep"].forEach(id=>{
+["f_nom","f_dom","f_source","f_pays","f_cat","f_pos","f_act","f_stat","f_zone","f_dep"].forEach(id=>{
   document.getElementById(id).addEventListener("input",apply);
 });
 document.getElementById("reset").onclick=()=>{
-  ["f_nom","f_dom","f_pays","f_cat","f_pos","f_act","f_stat","f_zone","f_dep"].forEach(id=>document.getElementById(id).value="");
+  ["f_nom","f_dom","f_source","f_pays","f_cat","f_pos","f_act","f_stat","f_zone","f_dep"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("detail").style.display="none"; selId=null;
   apply();
 };
 
+function setEmpty(state){
+  const msgs={
+    waiting:"En attente des données Grist… Si rien ne s'affiche : ouvrez les réglages du widget, choisissez la table dans « Sélectionner les données », et autorisez l'accès « Read table ».",
+    connected:"Connecté à Grist mais <b>0 ligne reçue</b>. Vérifiez que le widget pointe sur la bonne table (« Sélectionner les données ») et que l'accès <b>Read table</b> est accordé.",
+    nocsv:"Prévisualisation locale indisponible. À utiliser comme widget Grist."
+  };
+  const el=document.getElementById("list"); if(el) el.innerHTML='<div class="empty">'+(msgs[state]||"")+'</div>';
+  ["count","count2"].forEach(id=>{const e=document.getElementById(id); if(e)e.textContent="0";});
+}
 function ingest(records){
-  DATA = (records||[]).map((r,i)=>norm(r,i));
+  records = records || [];
+  if (!records.length){ setEmpty("connected"); return; }
+  KEYRES={}; Object.keys(records[0]).forEach(k=>KEYRES[deburr(k)]=k);
+  DATA = records.map((r,i)=>norm(r,i));
   buildFilters();
   apply();
 }
+let gristGotData=false;
 function bootGrist(){
   grist.ready({requiredAccess:"read table"});
-  grist.onRecords(recs=>ingest(recs));
+  grist.onRecords(recs=>{ gristGotData=true; ingest(recs); });
+  setTimeout(()=>{ if(!gristGotData) setEmpty("waiting"); }, 2500);
 }
 function bootCsv(){
   fetch("acteurs_reemploi_poc.csv").then(r=>r.text()).then(txt=>{
     const recs=parseCSV(txt);
-    if(!recs.length){ document.getElementById("list").innerHTML='<div class="empty">Aucune donnée trouvée.</div>'; return; }
+    if(!recs.length){ setEmpty("connected"); return; }
     ingest(recs);
-  }).catch(()=>{
-    document.getElementById("list").innerHTML='<div class="empty">Prévisualisation locale indisponible. À utiliser comme widget Grist.</div>';
-  });
+  }).catch(()=> setEmpty("nocsv"));
 }
 function parseCSV(text){
   const rows=[]; let row=[], field="", q=false;

@@ -6,23 +6,26 @@ Ce dépôt contient les deux livrables du POC :
 
 | Fichier | Rôle |
 |---|---|
-| `acteurs_reemploi_poc.csv` | Jeu de données (589 structures) prêt à importer dans Grist |
+| `acteurs_reemploi_poc.csv` | Jeu de données (620 structures) prêt à importer dans Grist |
 | `widget_carto.html` | Widget carte custom Grist (Leaflet) avec filtres, liste et fiche structure |
 
-## Contenu du jeu de données (589 structures, 2 domaines)
+## Contenu du jeu de données (620 structures)
 
-Le CSV regroupe deux jeux distingués par la colonne **`Domaine`** :
+Le CSV combine trois sources, traçables par la colonne **`Source`** et regroupées par **`Domaine`** :
 
-| Domaine | Lignes | Origine | Périmètre |
+| Source | Lignes | Domaine | Nature |
 |---|---|---|---|
-| `Mobilier & informatique` | 86 | Réseaux du réemploi (Envie, Ecodair, Valdelia/ressourceries, Adopte un Bureau, Tricycle, RNRR…) | France, art. 58 AGEC |
-| `Réemploi d'emballages` | 503 | Cartographie acteurs réemploi emballages B2B | International (16 pays) |
+| `SPARE — vérifié 12/03/2026` | 39 | Mobilier & informatique | **Données réelles** (SIRET, adresses), informatique/EEE ciblées achats publics |
+| `Démo (à vérifier)` | 78 | Mobilier & informatique | Acteurs réels (Envie, ressourceries, mobilier…) mais champs synthétiques |
+| `Cartographie emballages B2B` | 503 | Réemploi d'emballages | Réemploi d'emballages/consigne, international (16 pays) |
+
+> Les 8 doublons entre la démo et SPARE (Alt Eco, Ateliers du Bocage, ATF, Ecodair, Largo) ont été retirés au profit des lignes réelles SPARE.
 
 ## ⚠️ Nature des données
 
 Jeu **illustratif** pour le POC, à fiabiliser avant tout usage officiel :
 
-- **SIRET** : synthétiques (format Luhn valide mais fictifs) pour les 86 lignes mobilier+info ; **vides** pour les 503 lignes emballages. À compléter via SIRENE.
+- **SIRET** : **réels** pour les 39 lignes SPARE ; synthétiques (format Luhn valide mais fictifs) pour les 78 lignes de démo ; vides pour les 503 lignes emballages. À compléter via SIRENE pour les deux derniers cas.
 - **Coordonnées** : géocodées automatiquement (geonamescache + table d'appoint). 307 lignes au niveau ville, 150 via table d'appoint (exonymes, communes, régions), 46 repliées sur le **centroïde du pays** (petites communes non résolues, à affiner). À vérifier sur la Base Adresse Nationale.
 - **Données source emballages** conservées telles quelles : certaines structures taguées « France » sont en réalité des filiales nord-américaines (`… (Canada)`/`(USA)`) — géocodées à leur ville réelle mais le champ `Pays` reflète la source.
 - Le fichier source réel du POC mobilier reste celui transmis par **SPARE**.
@@ -57,6 +60,7 @@ Colonnes ajoutées par la fusion (renseignées surtout pour le domaine emballage
 | `Type_acteur` | Choix | Opérateur / Fabricant / Pooler / Lavage / Reconditionneur… |
 | `Secteur` | Choix | Logistique / Boissons / Restauration / Industrie… |
 | `Offre`, `Type_emballage`, `Materiaux`, `Cible_client` | Texte/Choix | dimensions de la source emballages |
+| `Source` | Choix | SPARE (vérifié) / Démo (à vérifier) / Cartographie emballages B2B |
 
 > Les champs multi-valeurs utilisent `;` comme séparateur. À l'import, typez ces colonnes en **Liste de choix** dans Grist (Grist découpe automatiquement). Les colonnes vides pour un domaine donné (ex. `Departement` côté emballages) sont normales.
 
@@ -72,8 +76,11 @@ Le widget lit la table active via l'API Grist (`grist.ready` + `grist.onRecords`
 
 1. Héberger `widget_carto.html` à une URL publique (ex. GitHub Pages de ce dépôt, ou un hébergement souverain).
 2. Dans la vue Grist : **Add New → Add Widget to Page → Custom**.
-3. Coller l'URL du widget, choisir la table `Acteurs`, accès **Read table**.
-4. La carte affiche les structures ; les 7 filtres et les filtres rapides agissent côté widget.
+3. **Sélectionner les données** : dans le panneau de droite, régler « SELECT DATA » sur la table `Acteurs` (sinon le widget ne reçoit aucune ligne → liste à 0).
+4. Coller l'URL du widget dans « Custom URL », puis **autoriser l'accès « Read table »** quand Grist le demande.
+5. La carte affiche les structures ; filtres, liste et fiche agissent côté widget.
+
+> **Liste à 0 alors que la table est remplie ?** C'est presque toujours (a) la source de données du widget non réglée sur la table, ou (b) l'accès « Read table » non accordé. Le widget affiche désormais un message de diagnostic explicite dans ces cas. La lecture des colonnes est tolérante (casse/accents) et gère les listes de choix Grist.
 
 ### Prévisualisation locale (sans Grist)
 
@@ -85,9 +92,9 @@ python3 -m http.server 8000   # puis http://localhost:8000/widget_carto.html
 
 ## Fonctionnalités du widget (couverture PRD §7)
 
-- **Carte** (fond IGN / Géoplateforme, souverain) avec clustering des marqueurs ; recentrage automatique sur les résultats filtrés (zoom mondial inclus).
+- **Carte** : fond **Plan IGN v2** (Géoplateforme) — raster, en français, souverain. Clustering des marqueurs et recentrage sur le **barycentre** des résultats (évite le centrage « null island » sur données mondiales).
 - **Liste des acteurs** dans le panneau latéral, synchronisée avec les filtres ; un clic centre la carte sur la structure et ouvre sa fiche.
-- **Filtres** : Nom, Domaine, Pays, Catégorie de produits, Position dans la chaîne, Activité, Statut, Zone d'intervention, Département.
+- **Filtres** : Nom, Domaine, Source, Pays, Catégorie de produits, Position dans la chaîne, Activité, Statut, Zone d'intervention, Département.
 - **Filtres rapides** (chips) sur Domaine, Position et Statut.
 - **Fiche structure** au clic sur un marqueur ou un élément de la liste — affiche aussi, pour le domaine emballages, le type d'acteur, le secteur, la cible client et les matériaux.
 - Compteur de résultats + réinitialisation.
