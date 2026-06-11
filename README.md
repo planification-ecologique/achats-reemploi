@@ -6,24 +6,24 @@ Ce dépôt contient les deux livrables du POC :
 
 | Fichier | Rôle |
 |---|---|
-| `acteurs_reemploi_poc.csv` | Jeu de données (117 structures, France) prêt à importer dans Grist |
+| `acteurs_reemploi_poc.csv` | Jeu de données (39 structures réelles SPARE, France) prêt à importer dans Grist |
 | `widget_carto.html` | Widget carte custom Grist (Leaflet) avec filtres, liste et fiche structure |
 
-## Contenu du jeu de données (117 structures)
+## Contenu du jeu de données (39 structures)
 
-Le jeu de données est **circonscrit à la France** (métropole + DROM-COM) et aux **produits visés par l'article 58 de la loi AGEC**. Il combine deux sources, traçables par la colonne **`Source`** :
+Le jeu de données est **circonscrit à la France** (métropole + DROM-COM) et aux **produits visés par l'article 58 de la loi AGEC**. Il ne contient que des **données réelles vérifiées** :
 
 | Source | Lignes | Nature |
 |---|---|---|
 | `SPARE — vérifié 12/03/2026` | 39 | **Données réelles** (SIRET, adresses), matériel informatique / EEE ciblés achats publics |
-| `Démo (à vérifier)` | 78 | Acteurs réels (Envie, ressourceries, mobilier…) mais champs synthétiques |
 
-> Les 8 doublons entre la démo et SPARE (Alt Eco, Ateliers du Bocage, ATF, Ecodair, Largo) ont été retirés au profit des lignes réelles SPARE.
+> La colonne **`Source`** est conservée pour la traçabilité interne (mais n'est plus exposée comme filtre dans le widget).
 
 ### Évolution depuis la V1 (retours DAE)
 
 - **Domaine « Réemploi d'emballages » retiré** (503 structures, internationales, hors périmètre art. 58). Il pourra être réintroduit *dans un second temps* pour élargir à des produits non visés par AGEC.
 - **Périmètre France uniquement** (DROM-COM inclus), cohérent avec la démarche du réemploi.
+- **Lignes de démo (champs synthétiques) retirées** : seules les 39 structures réelles vérifiées SPARE sont conservées.
 - **Colonnes hors PRD supprimées** (issues de la carto emballages) : `Pays`, `Region_source`, `Type_acteur`, `Secteur`, `Offre`, `Type_emballage`, `Materiaux`, `Cible_client`.
 - **`Domaine` recalculé en domaine d'activité multi-tag** (`Informatique`, `Mobilier`, `Électroménager`) dérivé des catégories de produits ; une structure sur plusieurs domaines porte plusieurs tags.
 - **`Source` conservée pour la traçabilité interne** mais **n'est plus exposée comme filtre** dans le widget.
@@ -32,7 +32,7 @@ Le jeu de données est **circonscrit à la France** (métropole + DROM-COM) et a
 
 Jeu **illustratif** pour le POC, à fiabiliser avant tout usage officiel :
 
-- **SIRET** : **réels** pour les 39 lignes SPARE ; synthétiques (format Luhn valide mais fictifs) pour les 78 lignes de démo. À compléter / vérifier via SIRENE.
+- **SIRET** : **réels** pour les 39 lignes SPARE. À recouper avec SIRENE avant usage officiel.
 - **Coordonnées** : géocodées automatiquement (geonamescache + table d'appoint). À vérifier sur la Base Adresse Nationale.
 - Le fichier source réel du POC mobilier reste celui transmis par **SPARE**.
 
@@ -92,7 +92,8 @@ python3 -m http.server 8000   # puis http://localhost:8000/widget_carto.html
 - **Bouton de référencement** « Vous êtes un acteur du réemploi ? Se référencer » : renvoie vers le questionnaire de présentation des structures (URL à renseigner via `QUESTIONNAIRE_URL` dans le widget).
 - **Carte** : fond **Plan IGN v2** (Géoplateforme) — raster, en français, souverain. Clustering des marqueurs et recentrage sur le **barycentre** des résultats.
 - **Liste des acteurs** dans le panneau latéral, synchronisée avec les filtres ; un clic centre la carte sur la structure et ouvre sa fiche.
-- **Filtres** : Nom, Domaine, Catégorie de produits, Position dans la chaîne du réemploi, Activité, Statut, Zone d'intervention, Département. *(Les filtres « Source » et « Pays », ainsi que les filtres rapides, ont été retirés pour alléger l'interface.)*
+- **Filtres** : Nom, Domaine, Catégorie de produits, Position dans la chaîne du réemploi, Activité, Statut, Zone d'intervention, Département. *(Les filtres « Source » et « Pays » ont été retirés pour alléger l'interface.)*
+- **Filtres rapides** : réduits à un seul rang de raccourcis (chips) sur le **Domaine**, en complément des filtres ci-dessus.
 - **Fiche structure** au clic sur un marqueur ou un élément de la liste : présentation, puis **site internet juste après la description**, domaine(s), SIRET, catégories, activités, position dans la chaîne du réemploi, ville, département, zone d'intervention et **« Reconnaissances (labels, certifications, distinction) »**.
 - Compteur de résultats + réinitialisation.
 
@@ -102,7 +103,5 @@ En plus du widget, on peut configurer côté Grist : une vue **Carte** native (c
 
 ## Points ouverts à confirmer avec la DAE
 
-- **Filtres rapides** : retirés dans cette version pour alléger. Un compromis (jeu réduit de raccourcis) reste possible — à arbitrer selon vos retours d'usage.
 - **Questionnaire de référencement** : URL à fournir pour activer le bouton « Se référencer ».
 - **Logo** : fournir l'asset officiel pour remplacer le SVG provisoire.
-- **Lignes de démo** : 78 structures aux champs synthétiques, à fiabiliser ou retirer avant usage officiel.

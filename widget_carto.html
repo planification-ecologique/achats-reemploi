@@ -108,6 +108,7 @@
             <div class="field"><label>Zone d'intervention</label><select id="f_zone"></select></div>
             <div class="field"><label>Département</label><select id="f_dep"></select></div>
           </div>
+          <div class="field full" style="margin-bottom:0"><label>Filtres rapides — Domaine</label><div class="quick" id="quick_dom"></div></div>
         </div>
       </details>
       <details open>
@@ -209,6 +210,16 @@ function buildFilters(){
   fillSelect("f_stat","Tous", uniq(DATA.map(d=>d.statut).filter(Boolean)));
   fillSelect("f_zone","Toutes", uniq(DATA.map(d=>d.zone).filter(Boolean)));
   fillSelect("f_dep","Tous", uniq(DATA.map(d=>d.dep).filter(Boolean)));
+  buildQuick("quick_dom","f_dom", uniq(DATA.flatMap(d=>d.dom)));
+}
+// Raccourci de filtre (chips) : un clic règle/efface le select associé.
+function buildQuick(containerId, selectId, values){
+  const c = document.getElementById(containerId); c.innerHTML="";
+  values.forEach(v=>{
+    const b=document.createElement("button"); b.textContent=v; b.dataset.val=v;
+    b.onclick=()=>{ const sel=document.getElementById(selectId); sel.value=(sel.value===v)?"":v; apply(); };
+    c.appendChild(b);
+  });
 }
 function getFilters(){
   return {
@@ -250,6 +261,7 @@ function apply(){
   document.getElementById("count").textContent=shown.length;
   document.getElementById("count2").textContent=shown.length;
   renderList(shown);
+  syncQuick("quick_dom","f_dom");
   frameTo(bounds);
   fixSize();
 }
@@ -297,6 +309,10 @@ function focusMarker(d){
   } else {
     map.setView([d.lat,d.lng], 12);
   }
+}
+function syncQuick(containerId, selectId){
+  const val=document.getElementById(selectId).value;
+  document.querySelectorAll(`#${containerId} button`).forEach(b=>b.classList.toggle("on", b.dataset.val===val));
 }
 function showDetail(d){
   const el=document.getElementById("detail");
