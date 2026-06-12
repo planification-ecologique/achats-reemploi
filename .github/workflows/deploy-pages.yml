@@ -50,6 +50,8 @@ jobs:
           # index.html = copie du widget pour servir la preview à la racine
           # (le fetch du CSV reste relatif et fonctionne).
           cp widget_carto.html _site/index.html
+          # Site statique pur : désactive le traitement Jekyll côté Pages.
+          touch _site/.nojekyll
 
       - name: Configure Pages
         # Prérequis : Pages doit être activé manuellement une fois par un admin
