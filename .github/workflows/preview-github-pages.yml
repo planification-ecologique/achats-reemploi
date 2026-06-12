@@ -1,0 +1,105 @@
+name: Preview GitHub Pages
+
+# Preview par PR : chaque PR publie une copie isolée du site dans
+# gh-pages sous pr/<N>/, et un commentaire unique (édité en place) donne
+# l'URL. keep_files préserve la prod et les autres previews.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: preview-pages-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_PATH: pr/${{ github.event.pull_request.number }}
+      PREVIEW_URL: https://planification-ecologique.github.io/achats-reemploi/pr/${{ github.event.pull_request.number }}/
+
+    steps:
+      - name: Find preview comment
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          issue-number: ${{ env.PR_NUMBER }}
+          comment-author: github-actions[bot]
+          body-includes: GitHub Pages preview
+
+      - name: Comment — deployment started
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ env.PR_NUMBER }}
+          body: |
+            <!-- pages-preview -->
+            ## GitHub Pages preview
+
+            Construction de la preview pour le commit `${{ github.event.pull_request.head.sha }}`…
+          edit-mode: replace
+
+      - uses: actions/checkout@v4
+
+      - name: Assemble le site (widget + données + index)
+        run: |
+          mkdir -p public
+          cp widget_carto.html public/widget_carto.html
+          cp acteurs_reemploi_poc.csv public/acteurs_reemploi_poc.csv
+          cp widget_carto.html public/index.html
+          touch public/.nojekyll
+
+      - name: Deploy preview
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          destination_dir: ${{ env.PR_PATH }}
+          keep_files: true
+
+      - name: Find preview comment
+        if: always()
+        uses: peter-evans/find-comment@v3
+        id: find-comment-final
+        with:
+          issue-number: ${{ env.PR_NUMBER }}
+          comment-author: github-actions[bot]
+          body-includes: GitHub Pages preview
+
+      - name: Comment — preview ready
+        if: success()
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment-final.outputs.comment-id }}
+          issue-number: ${{ env.PR_NUMBER }}
+          body: |
+            <!-- pages-preview -->
+            ## GitHub Pages preview
+
+            Preview prête pour le commit `${{ github.event.pull_request.head.sha }}` :
+
+            **${{ env.PREVIEW_URL }}**
+
+            La propagation peut prendre 1 à 2 minutes.
+          edit-mode: replace
+
+      - name: Comment — deployment failed
+        if: failure()
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment-final.outputs.comment-id }}
+          issue-number: ${{ env.PR_NUMBER }}
+          body: |
+            <!-- pages-preview -->
+            ## GitHub Pages preview
+
+            Échec du déploiement de la preview pour le commit `${{ github.event.pull_request.head.sha }}`.
+
+            Voir le [run du workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) pour les détails.
+          edit-mode: replace

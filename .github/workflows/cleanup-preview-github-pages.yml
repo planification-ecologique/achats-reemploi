@@ -1,0 +1,66 @@
+name: Cleanup GitHub Pages preview
+
+# À la fermeture/fusion d'une PR : retire le dossier de preview pr/<N>/ de
+# gh-pages et met à jour le commentaire.
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: preview-pages-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_PATH: pr/${{ github.event.pull_request.number }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Remove preview folder from gh-pages
+        run: |
+          set -e
+          if ! git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            echo "Pas de branche gh-pages : rien à nettoyer."
+            exit 0
+          fi
+          git fetch origin gh-pages
+          git checkout gh-pages
+          if [ -d "$PR_PATH" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git rm -r "$PR_PATH"
+            git commit -m "Nettoyage de la preview $PR_PATH (PR fermée)"
+            git push origin gh-pages
+          else
+            echo "Pas de dossier $PR_PATH : rien à nettoyer."
+          fi
+
+      - name: Find preview comment
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          issue-number: ${{ env.PR_NUMBER }}
+          comment-author: github-actions[bot]
+          body-includes: GitHub Pages preview
+
+      - name: Comment — preview removed
+        if: steps.find-comment.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ env.PR_NUMBER }}
+          body: |
+            <!-- pages-preview -->
+            ## GitHub Pages preview
+
+            Preview supprimée (PR fermée).
+          edit-mode: replace

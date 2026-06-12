@@ -88,10 +88,11 @@ python3 -m http.server 8000   # puis http://localhost:8000/widget_carto.html
 
 ### Prévisualisation en ligne (GitHub Pages + previews par PR)
 
-Le workflow `.github/workflows/deploy-pages.yml` publie le widget via la branche `gh-pages` :
+Trois workflows publient le widget via la branche `gh-pages` (même logique que le dépôt [`barometre`](https://github.com/planification-ecologique/barometre/)) :
 
-- **`main`** → site de production à la racine : `https://planification-ecologique.github.io/achats-reemploi/`
-- **chaque pull request** → preview isolée : `…/pr-preview/pr-<N>/`, avec un commentaire automatique sur la PR et **nettoyage à la fermeture**. Les previews ne touchent pas le site de production.
+- `deploy-github-pages.yml` — **`main`** → site de production à la racine : `https://planification-ecologique.github.io/achats-reemploi/`
+- `preview-github-pages.yml` — **chaque pull request** (à l'ouverture, à chaque push, à la réouverture) → preview isolée : `…/pr/<N>/`, avec un **commentaire unique mis à jour en place** (construction → URL prête / échec). Les previews ne touchent pas le site de production (`keep_files`).
+- `cleanup-preview-github-pages.yml` — **fermeture/fusion de la PR** → suppression du dossier `pr/<N>/` et mise à jour du commentaire.
 
 La preview sert le widget + le CSV, donc elle affiche les données du POC sans document Grist.
 
