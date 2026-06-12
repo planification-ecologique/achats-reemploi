@@ -86,11 +86,16 @@ Ouvert hors Grist (en haut niveau, hors iframe), le widget retombe automatiqueme
 python3 -m http.server 8000   # puis http://localhost:8000/widget_carto.html
 ```
 
-### Prévisualisation en ligne (GitHub Pages)
+### Prévisualisation en ligne (GitHub Pages + previews par PR)
 
-Le workflow `.github/workflows/deploy-pages.yml` déploie automatiquement une **preview** du widget sur GitHub Pages à chaque push sur `main` (ou la branche de travail). La preview sert le widget + le CSV, donc elle affiche les données du POC sans document Grist.
+Le workflow `.github/workflows/deploy-pages.yml` publie le widget via la branche `gh-pages` :
 
-> **À activer une seule fois** : *Settings → Pages → Build and deployment → Source = « GitHub Actions »*. L'URL publiée apparaît ensuite dans le résumé du workflow (et dans l'environnement `github-pages`).
+- **`main`** → site de production à la racine : `https://planification-ecologique.github.io/achats-reemploi/`
+- **chaque pull request** → preview isolée : `…/pr-preview/pr-<N>/`, avec un commentaire automatique sur la PR et **nettoyage à la fermeture**. Les previews ne touchent pas le site de production.
+
+La preview sert le widget + le CSV, donc elle affiche les données du POC sans document Grist.
+
+> **À activer une seule fois** : *Settings → Pages → Build and deployment → Source = « Deploy from a branch » → branche `gh-pages` / dossier `/ (root)`*. Le dépôt doit aussi autoriser le token en écriture : *Settings → Actions → General → Workflow permissions = « Read and write permissions »*.
 
 ## Fonctionnalités du widget (couverture PRD §7)
 
