@@ -80,11 +80,17 @@ Le widget lit la table active via l'API Grist (`grist.ready` + `grist.onRecords`
 
 ### Prévisualisation locale (sans Grist)
 
-Ouvert hors Grist, le widget retombe automatiquement sur le CSV servi à côté de lui :
+Ouvert hors Grist (en haut niveau, hors iframe), le widget retombe automatiquement sur le CSV servi à côté de lui :
 
 ```bash
 python3 -m http.server 8000   # puis http://localhost:8000/widget_carto.html
 ```
+
+### Prévisualisation en ligne (GitHub Pages)
+
+Le workflow `.github/workflows/deploy-pages.yml` déploie automatiquement une **preview** du widget sur GitHub Pages à chaque push sur `main` (ou la branche de travail). La preview sert le widget + le CSV, donc elle affiche les données du POC sans document Grist.
+
+> **À activer une seule fois** : *Settings → Pages → Build and deployment → Source = « GitHub Actions »*. L'URL publiée apparaît ensuite dans le résumé du workflow (et dans l'environnement `github-pages`).
 
 ## Fonctionnalités du widget (couverture PRD §7)
 

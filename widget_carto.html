@@ -400,7 +400,10 @@ function parseCSV(text){
 }
 
 initMap();
-if (typeof grist !== "undefined" && grist.ready) bootGrist();
+// Un widget custom Grist tourne toujours dans une iframe. En haut niveau (preview
+// GitHub Pages / ouverture locale), on bascule sur le CSV servi à côté du widget.
+const embedded = window.self !== window.top;
+if (embedded && typeof grist !== "undefined" && grist.ready) bootGrist();
 else bootCsv();
 </script>
 </body>
