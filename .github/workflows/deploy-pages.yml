@@ -50,11 +50,11 @@ jobs:
           cp widget_carto.html _site/index.html
 
       - name: Configure Pages
+        # Prérequis : Pages doit être activé manuellement une fois par un admin
+        # du dépôt (Settings → Pages → Source = « GitHub Actions »). La création
+        # automatique (enablement: true) est bloquée par la politique de l'org
+        # (« Resource not accessible by integration »).
         uses: actions/configure-pages@v5
-        with:
-          # Active automatiquement GitHub Pages (source = GitHub Actions) au
-          # premier passage, sans réglage manuel dans Settings → Pages.
-          enablement: true
 
       - name: Upload de l'artefact
         uses: actions/upload-pages-artifact@v3
