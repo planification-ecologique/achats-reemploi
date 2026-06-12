@@ -4,8 +4,10 @@ name: Déploiement preview GitHub Pages
 # Ouvert hors Grist, le widget retombe sur le CSV servi à côté de lui : la preview
 # affiche donc les données du POC sans avoir besoin d'un document Grist.
 #
-# Prérequis (une seule fois, déjà fait) : Settings → Pages → "Build and
-# deployment" → Source = "GitHub Actions".
+# Prérequis (une seule fois, déjà fait) :
+#  - Settings → Pages → "Build and deployment" → Source = "GitHub Actions".
+#  - Settings → Environments → github-pages → Deployment branches : autoriser
+#    la branche de déploiement (main + branche de travail / pattern claude/*).
 
 on:
   push:
