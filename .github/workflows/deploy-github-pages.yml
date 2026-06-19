@@ -1,0 +1,48 @@
+name: Deploy GitHub Pages
+
+# Production : tout push sur main republie le site à la racine de gh-pages.
+# keep_files conserve les previews de PR (dossier pr/<N>/) déjà publiées.
+#
+# Prérequis (une seule fois) :
+#   Settings → Pages → Build and deployment → Source = "Deploy from a branch"
+#   → branche "gh-pages" / dossier "/ (root)".
+#   Settings → Actions → General → Workflow permissions = "Read and write".
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: https://planification-ecologique.github.io/achats-reemploi/
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble le site (widget + données + index)
+        run: |
+          mkdir -p public
+          cp widget_carto.html public/widget_carto.html
+          cp acteurs_reemploi_poc.csv public/acteurs_reemploi_poc.csv
+          # index.html = copie du widget pour servir la page à la racine
+          # (le fetch du CSV reste relatif et fonctionne).
+          cp widget_carto.html public/index.html
+          # Site statique pur : désactive le traitement Jekyll côté Pages.
+          touch public/.nojekyll
+
+      - name: Déploiement production (gh-pages)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          keep_files: true
