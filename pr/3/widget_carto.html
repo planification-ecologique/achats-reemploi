@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Les acteurs du réemploi pour une commande publique circulaire</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<style>
+  :root{
+    --bg:#ffffff; --panel:#f5f7fa; --border:#dce1e8; --ink:#1b2733; --muted:#5b6b7b;
+    --accent:#1d7a4d; --accent-soft:#e3f3ea; --chip:#eef2f6;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;width:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+  #app{display:flex;height:100vh;min-height:420px}
+  /* Sidebar */
+  #sidebar{width:340px;flex:0 0 340px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--panel);min-height:0}
+  #sidebar header{padding:12px 16px;border-bottom:1px solid var(--border);background:#fff}
+  .brand{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+  .brand .logo{flex:0 0 30px;width:30px;height:30px}
+  #sidebar header h1{font-size:14px;line-height:1.25;margin:0}
+  #sidebar header p{font-size:11px;color:var(--muted);margin:0}
+  .cta{display:block;margin-top:10px;padding:8px 10px;background:var(--accent);color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-align:center;text-decoration:none}
+  .cta:hover{filter:brightness(.95)}
+  .scroll{overflow:auto;flex:1;min-height:0}
+  details{border-bottom:1px solid var(--border)}
+  details>summary{cursor:pointer;padding:10px 16px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;list-style:none}
+  details>summary::-webkit-details-marker{display:none}
+  details>summary::after{content:"▾";float:right;color:var(--muted)}
+  details:not([open])>summary::after{content:"▸"}
+  .filters{padding:6px 16px 12px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .field{margin-bottom:9px}
+  .field.full{grid-column:1/3}
+  .field label{display:block;font-size:10.5px;font-weight:600;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.02em}
+  .field input,.field select{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;background:#fff;color:var(--ink)}
+  .quick{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 4px}
+  .quick button{border:1px solid var(--border);background:#fff;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;color:var(--ink)}
+  .quick button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  /* List */
+  #list{padding:6px 10px 14px}
+  .item{background:#fff;border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:7px;cursor:pointer;transition:border-color .12s,box-shadow .12s}
+  .item:hover{border-color:var(--accent);box-shadow:0 2px 8px rgba(20,40,60,.08)}
+  .item.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  .item .nm{font-size:13px;font-weight:600;margin-bottom:2px}
+  .item .meta{font-size:11px;color:var(--muted)}
+  .item .tag{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600;margin-top:5px}
+  .bar{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-top:1px solid var(--border);background:#fff;font-size:12px}
+  .bar b{color:var(--accent)}
+  .bar a{color:var(--muted);cursor:pointer;text-decoration:underline;font-size:12px}
+  /* Map */
+  #mapwrap{flex:1;position:relative;min-width:0}
+  #map{position:absolute;inset:0}
+  /* Detail card */
+  #detail{position:absolute;top:12px;right:12px;width:330px;max-height:calc(100% - 24px);overflow:auto;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 30px rgba(20,40,60,.18);padding:16px;display:none;z-index:1000}
+  #detail h2{font-size:15px;margin:0 24px 6px 0}
+  #detail .close{position:absolute;top:10px;right:12px;border:none;background:none;font-size:20px;cursor:pointer;color:var(--muted);line-height:1}
+  .badge{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;margin-bottom:8px}
+  .row{font-size:12.5px;margin:8px 0;display:flex;flex-direction:column;gap:2px}
+  .row .k{color:var(--muted);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.02em}
+  .row .v{flex:1}
+  .chips{display:flex;flex-wrap:wrap;gap:4px}
+  .chips span{background:var(--chip);border-radius:5px;padding:2px 7px;font-size:11px}
+  #detail a.web{display:inline-block;margin-top:6px;color:var(--accent);font-size:12.5px;word-break:break-all}
+  .empty{padding:18px;color:var(--muted);font-size:12.5px;text-align:center}
+  @media (max-width:720px){
+    #app{flex-direction:column}
+    #sidebar{width:100%;flex:1 1 50%}
+    #mapwrap{flex:1 1 50%;min-height:240px}
+    #detail{width:auto;left:12px}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <header>
+      <div class="brand">
+        <!-- Logo : remplacer ce SVG par le logo officiel (ex. <img src="logo.svg" alt="…">) -->
+        <svg class="logo" viewBox="0 0 32 32" role="img" aria-label="Logo réemploi" focusable="false">
+          <circle cx="16" cy="16" r="15" fill="var(--accent)"/>
+          <path d="M16 7l3.4 5.9h-2.2v4.1h-2.4v-4.1h-2.2L16 7zm-7 9.2l2 3.4 1.8-3.4h-1.1l1.6-2.8-2.1-1.2-2.4 4.2-0.9-0.5 1.1 0.3zm14 0l-1.1-0.3 1.1 0.5-2.4-4.2-2.1 1.2 1.6 2.8h-1.1l1.8 3.4 2.2-3.4z" fill="#fff"/>
+        </svg>
+        <h1>Les acteurs du réemploi pour une commande publique circulaire</h1>
+      </div>
+      <p>Pour les acheteurs publics — SPASER / art. 58 loi AGEC</p>
+      <!-- Bouton de référencement : renvoie vers le questionnaire de présentation des structures.
+           TODO : remplacer QUESTIONNAIRE_URL par l'URL réelle du questionnaire. -->
+      <a id="cta" class="cta" href="#" target="_blank" rel="noopener">Vous êtes un acteur du réemploi ? Se référencer</a>
+    </header>
+    <div class="scroll">
+      <details open>
+        <summary>Filtres</summary>
+        <div class="filters">
+          <div class="field full">
+            <label>Recherche par nom</label>
+            <input id="f_nom" type="text" placeholder="Nom de la structure…" />
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Catégorie de produit</label><select id="f_cat"></select></div>
+            <div class="field"><label>Région</label><select id="f_reg"></select></div>
+            <div class="field full"><label>Position dans la chaîne du réemploi</label><select id="f_pos"></select></div>
+            <div class="field"><label>Activité</label><select id="f_act"></select></div>
+            <div class="field"><label>Statut</label><select id="f_stat"></select></div>
+            <div class="field full"><label>Zone d'intervention</label><select id="f_zone"></select></div>
+          </div>
+        </div>
+      </details>
+      <details open>
+        <summary>Liste des acteurs (<span id="count2">0</span>)</summary>
+        <div id="list"></div>
+      </details>
+    </div>
+    <div class="bar">
+      <span><b id="count">0</b> structure(s)</span>
+      <a id="reset">Réinitialiser</a>
+    </div>
+  </div>
+  <div id="mapwrap">
+    <div id="map"></div>
+    <div id="detail"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+<script>
+"use strict";
+
+const COLS = {
+  nom:"Nom_structure", statut:"Statut_structure", siret:"SIRET",
+  cat:"Categorie_produits", act:"Activite_structure", pos:"Position_chaine",
+  adresse:"Adresse", ville:"Ville", dep:"Departement", zone:"Zone_intervention",
+  site:"Site_internet", presentation:"Presentation", certs:"Certifications",
+  lat:"Latitude", lng:"Longitude"
+};
+const MULTI = ["cat","act","certs"];
+
+const POS_MAP = {
+  "Je collecte": "Collecte de biens en fin d'usage",
+  "Je vends": "Achat de biens",
+  "Je collecte et je vends": "Collecte et achat de biens",
+};
+
+const DEP_TO_REG = {
+  "01":"Auvergne-Rhône-Alpes","02":"Hauts-de-France","03":"Auvergne-Rhône-Alpes",
+  "04":"Provence-Alpes-Côte d'Azur","05":"Provence-Alpes-Côte d'Azur","06":"Provence-Alpes-Côte d'Azur",
+  "07":"Auvergne-Rhône-Alpes","08":"Grand Est","09":"Occitanie","10":"Grand Est",
+  "11":"Occitanie","12":"Occitanie","13":"Provence-Alpes-Côte d'Azur","14":"Normandie",
+  "15":"Auvergne-Rhône-Alpes","16":"Nouvelle-Aquitaine","17":"Nouvelle-Aquitaine",
+  "18":"Centre-Val de Loire","19":"Nouvelle-Aquitaine","2A":"Corse","2B":"Corse",
+  "21":"Bourgogne-Franche-Comté","22":"Bretagne","23":"Nouvelle-Aquitaine",
+  "24":"Nouvelle-Aquitaine","25":"Bourgogne-Franche-Comté","26":"Auvergne-Rhône-Alpes",
+  "27":"Normandie","28":"Centre-Val de Loire","29":"Bretagne","30":"Occitanie",
+  "31":"Occitanie","32":"Occitanie","33":"Nouvelle-Aquitaine","34":"Occitanie",
+  "35":"Bretagne","36":"Centre-Val de Loire","37":"Centre-Val de Loire",
+  "38":"Auvergne-Rhône-Alpes","39":"Bourgogne-Franche-Comté","40":"Nouvelle-Aquitaine",
+  "41":"Centre-Val de Loire","42":"Auvergne-Rhône-Alpes","43":"Auvergne-Rhône-Alpes",
+  "44":"Pays de la Loire","45":"Centre-Val de Loire","46":"Occitanie",
+  "47":"Nouvelle-Aquitaine","48":"Occitanie","49":"Pays de la Loire","50":"Normandie",
+  "51":"Grand Est","52":"Grand Est","53":"Pays de la Loire","54":"Grand Est",
+  "55":"Grand Est","56":"Bretagne","57":"Grand Est","58":"Bourgogne-Franche-Comté",
+  "59":"Hauts-de-France","60":"Hauts-de-France","61":"Normandie","62":"Hauts-de-France",
+  "63":"Auvergne-Rhône-Alpes","64":"Nouvelle-Aquitaine","65":"Occitanie","66":"Occitanie",
+  "67":"Grand Est","68":"Grand Est","69":"Auvergne-Rhône-Alpes","70":"Bourgogne-Franche-Comté",
+  "71":"Bourgogne-Franche-Comté","72":"Pays de la Loire","73":"Auvergne-Rhône-Alpes",
+  "74":"Auvergne-Rhône-Alpes","75":"Île-de-France","76":"Normandie","77":"Île-de-France",
+  "78":"Île-de-France","79":"Nouvelle-Aquitaine","80":"Hauts-de-France","81":"Occitanie",
+  "82":"Occitanie","83":"Provence-Alpes-Côte d'Azur","84":"Provence-Alpes-Côte d'Azur",
+  "85":"Pays de la Loire","86":"Nouvelle-Aquitaine","87":"Nouvelle-Aquitaine",
+  "88":"Grand Est","89":"Bourgogne-Franche-Comté","90":"Bourgogne-Franche-Comté",
+  "91":"Île-de-France","92":"Île-de-France","93":"Île-de-France","94":"Île-de-France",
+  "95":"Île-de-France","971":"Guadeloupe","972":"Martinique","973":"Guyane",
+  "974":"La Réunion","976":"Mayotte",
+};
+function depToReg(depStr){
+  const m = String(depStr).match(/^(\d{2,3}|2[AB])/i);
+  if (!m) return "";
+  return DEP_TO_REG[m[1].toUpperCase()] || DEP_TO_REG[m[1].padStart(2,"0")] || "";
+}
+
+let DATA = [];
+let markers = {};
+let cluster, map;
+let selId = null;
+
+function initMap(){
+  map = L.map("map", {scrollWheelZoom:true, preferCanvas:false, minZoom:2, worldCopyJump:true}).setView([46.6, 2.4], 6);
+  addBasemap();
+  cluster = L.markerClusterGroup({maxClusterRadius:45});
+  map.addLayer(cluster);
+  // Fix Leaflet sizing inside resizable iframes (Grist): recompute size once laid out.
+  setTimeout(fixSize, 0);
+  setTimeout(fixSize, 300);
+  window.addEventListener("resize", fixSize);
+  if (window.ResizeObserver) new ResizeObserver(fixSize).observe(document.getElementById("mapwrap"));
+}
+function fixSize(){ if (map) map.invalidateSize(false); }
+
+// Fond de carte : Plan IGN v2 (Géoplateforme) — raster, en français, souverain.
+function addBasemap(){
+  L.tileLayer("https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}", {
+    minZoom:2, maxZoom:18, tileSize:256,
+    attribution:'© <a href="https://www.ign.fr/" target="_blank" rel="noopener">IGN</a> — Géoplateforme'
+  }).addTo(map);
+}
+
+let KEYRES = {}; // résolution tolérante des noms de colonnes Grist (casse/accents)
+function deburr(s){ return String(s).normalize("NFKD").replace(/[̀-ͯ]/g,"").toLowerCase(); }
+function val(rec, colName){
+  let v = rec[colName];
+  if (v == null) { const ak = KEYRES[deburr(colName)]; if (ak) v = rec[ak]; }
+  return v;
+}
+// Grist encode les listes de choix comme ["L","a","b"] ; on normalise.
+function asList(v){
+  if (Array.isArray(v)) { const a = v[0]==="L" ? v.slice(1) : v; return a.map(x=>String(x).trim()).filter(Boolean); }
+  return String(v==null?"":v).split(";").map(s=>s.trim()).filter(Boolean);
+}
+function scalar(v){
+  if (Array.isArray(v)) return (v[0]==="L"?v.slice(1):v).join(", ");
+  return v==null ? "" : v;
+}
+function norm(rec, idx){
+  const o = {_id: rec.id != null ? rec.id : idx};
+  for (const k in COLS){
+    const v = val(rec, COLS[k]);
+    o[k] = MULTI.includes(k) ? asList(v) : scalar(v);
+  }
+  o.lat = parseFloat(o.lat); o.lng = parseFloat(o.lng);
+  o.reg = depToReg(o.dep);
+  o.pos = POS_MAP[o.pos] || o.pos;
+  return o;
+}
+function uniq(values){ return [...new Set(values)].sort((a,b)=>String(a).localeCompare(String(b),"fr")); }
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function fillSelect(id, label, values){
+  const sel = document.getElementById(id);
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">— ${label} —</option>` + values.map(v=>`<option>${escapeHtml(v)}</option>`).join("");
+  if (values.includes(cur)) sel.value = cur;
+}
+function buildFilters(){
+  fillSelect("f_cat","Toutes", uniq(DATA.flatMap(d=>d.cat)));
+  fillSelect("f_reg","Toutes", uniq(DATA.map(d=>d.reg).filter(Boolean)));
+  fillSelect("f_pos","Toutes", uniq(DATA.map(d=>d.pos).filter(Boolean)));
+  fillSelect("f_act","Toutes", uniq(DATA.flatMap(d=>d.act)));
+  fillSelect("f_stat","Tous", uniq(DATA.map(d=>d.statut).filter(Boolean)));
+  fillSelect("f_zone","Toutes", uniq(DATA.map(d=>d.zone).filter(Boolean)));
+}
+// Raccourci de filtre (chips) : un clic règle/efface le select associé.
+function buildQuick(containerId, selectId, values){
+  const c = document.getElementById(containerId); c.innerHTML="";
+  values.forEach(v=>{
+    const b=document.createElement("button"); b.textContent=v; b.dataset.val=v;
+    b.onclick=()=>{ const sel=document.getElementById(selectId); sel.value=(sel.value===v)?"":v; apply(); };
+    c.appendChild(b);
+  });
+}
+function getFilters(){
+  return {
+    nom: document.getElementById("f_nom").value.trim().toLowerCase(),
+    cat: document.getElementById("f_cat").value, pos: document.getElementById("f_pos").value,
+    reg: document.getElementById("f_reg").value,
+    act: document.getElementById("f_act").value, stat: document.getElementById("f_stat").value,
+    zone: document.getElementById("f_zone").value,
+  };
+}
+function match(d, f){
+  if (f.nom && !String(d.nom).toLowerCase().includes(f.nom)) return false;
+  if (f.cat && !d.cat.includes(f.cat)) return false;
+  if (f.pos && d.pos !== f.pos) return false;
+  if (f.reg && d.reg !== f.reg) return false;
+  if (f.act && !d.act.includes(f.act)) return false;
+  if (f.stat && d.statut !== f.stat) return false;
+  if (f.zone && d.zone !== f.zone) return false;
+  return true;
+}
+function apply(){
+  const f = getFilters();
+  cluster.clearLayers();
+  const shown=[]; const bounds=[];
+  DATA.forEach(d=>{
+    if (!match(d,f)) return;
+    shown.push(d);
+    if (isNaN(d.lat)||isNaN(d.lng)) return;
+    let m = markers[d._id];
+    if (!m){
+      m = L.marker([d.lat,d.lng]); m.bindTooltip(d.nom);
+      m.on("click",()=>{ selId=d._id; showDetail(d); highlightList(); });
+      markers[d._id]=m;
+    }
+    cluster.addLayer(m);
+    bounds.push([d.lat,d.lng]);
+  });
+  document.getElementById("count").textContent=shown.length;
+  document.getElementById("count2").textContent=shown.length;
+  renderList(shown);
+  frameTo(bounds);
+  fixSize();
+}
+// Cadrage robuste : fitBounds si resserré, sinon barycentre (insensible aux outliers
+// comme La Réunion / Canada qui faisaient centrer la carte près de (0,0)).
+function frameTo(bounds){
+  if (!bounds.length) return;
+  const lats=bounds.map(b=>b[0]), lngs=bounds.map(b=>b[1]);
+  const spanLat=Math.max(...lats)-Math.min(...lats);
+  const spanLng=Math.max(...lngs)-Math.min(...lngs);
+  if (spanLat<=12 && spanLng<=14){
+    map.fitBounds(bounds,{padding:[40,40],maxZoom:11});
+  } else {
+    const mLat=lats.reduce((a,b)=>a+b,0)/lats.length;
+    const mLng=lngs.reduce((a,b)=>a+b,0)/lngs.length;
+    const z = (spanLng>90||spanLat>60) ? 2 : (spanLng>30||spanLat>20) ? 4 : 5;
+    map.setView([mLat,mLng], z);
+  }
+}
+function renderList(items){
+  const el=document.getElementById("list");
+  if (!items.length){ el.innerHTML='<div class="empty">Aucune structure ne correspond aux filtres.</div>'; return; }
+  el.innerHTML = items.map(d=>`
+    <div class="item${d._id===selId?' sel':''}" data-id="${d._id}">
+      <div class="nm">${escapeHtml(d.nom)}</div>
+      <div class="meta">${escapeHtml([d.ville, d.reg].filter(Boolean).join(" · "))}</div>
+      <span class="tag">${escapeHtml(d.statut)}</span>
+    </div>`).join("");
+  el.querySelectorAll(".item").forEach(node=>{
+    node.onclick=()=>{
+      const d = DATA.find(x=>String(x._id)===node.dataset.id);
+      if (!d) return;
+      selId=d._id; showDetail(d); highlightList(); focusMarker(d);
+    };
+  });
+}
+function highlightList(){
+  document.querySelectorAll("#list .item").forEach(n=>n.classList.toggle("sel", n.dataset.id===String(selId)));
+}
+function focusMarker(d){
+  if (isNaN(d.lat)||isNaN(d.lng)) return;
+  const m=markers[d._id];
+  if (m && cluster.hasLayer(m)){
+    cluster.zoomToShowLayer(m, ()=>{ map.setView([d.lat,d.lng], Math.max(map.getZoom(),12)); m.openTooltip(); });
+  } else {
+    map.setView([d.lat,d.lng], 12);
+  }
+}
+function syncQuick(containerId, selectId){
+  const val=document.getElementById(selectId).value;
+  document.querySelectorAll(`#${containerId} button`).forEach(b=>b.classList.toggle("on", b.dataset.val===val));
+}
+function showDetail(d){
+  const el=document.getElementById("detail");
+  const chips = arr => `<div class="chips">${(arr&&arr.length?arr:[]).map(x=>`<span>${escapeHtml(x)}</span>`).join("")||"—"}</div>`;
+  const site = d.site ? `<a class="web" href="${escapeHtml(d.site)}" target="_blank" rel="noopener">${escapeHtml(d.site)}</a>` : "";
+  const r = (k,v) => v ? `<div class="row"><span class="k">${k}</span><span class="v">${escapeHtml(v)}</span></div>` : "";
+  const rc = (k,arr) => (arr&&arr.length) ? `<div class="row"><span class="k">${k}</span><span class="v">${chips(arr)}</span></div>` : "";
+  el.innerHTML = `
+    <button class="close" title="Fermer">×</button>
+    <div class="badge">${escapeHtml(d.statut||"")}</div>
+    <h2>${escapeHtml(d.nom||"")}</h2>
+    <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">${escapeHtml(d.presentation||"")}</p>
+    ${site}
+    ${r("SIRET", d.siret)}
+    ${rc("Catégorie de produit", d.cat)}
+    ${rc("Activités", d.act)}
+    ${r("Position dans la chaîne du réemploi", d.pos)}
+    ${r("Ville", d.ville)}
+    ${r("Région", d.reg)}
+    ${r("Zone d'intervention", d.zone)}
+    ${rc("Reconnaissances obtenues (labels, certifications, normes iso)", d.certs)}`;
+  el.querySelector(".close").onclick=()=>{el.style.display="none";};
+  el.style.display="block";
+}
+
+const FILTER_IDS = ["f_nom","f_cat","f_pos","f_reg","f_act","f_stat","f_zone"];
+FILTER_IDS.forEach(id=>{
+  document.getElementById(id).addEventListener("input",apply);
+});
+document.getElementById("reset").onclick=()=>{
+  FILTER_IDS.forEach(id=>document.getElementById(id).value="");
+  document.getElementById("detail").style.display="none"; selId=null;
+  apply();
+};
+
+// URL du questionnaire de référencement (« se manifester »).
+// Formulaire Grist publié, écrit dans la table Referencement.
+const QUESTIONNAIRE_URL = "https://grist.numerique.gouv.fr/o/planification-ecologique/forms/dAVHtTwUb73qL4cgfQwTiy/15";
+(function(){
+  const cta=document.getElementById("cta");
+  if(QUESTIONNAIRE_URL){ cta.href=QUESTIONNAIRE_URL; }
+  else { cta.addEventListener("click",e=>{ e.preventDefault(); alert("Le questionnaire de référencement sera bientôt disponible."); }); }
+})();
+
+function setEmpty(state){
+  const msgs={
+    waiting:"En attente des données Grist… Si rien ne s'affiche : ouvrez les réglages du widget, choisissez la table dans « Sélectionner les données », et autorisez l'accès « Read table ».",
+    connected:"Connecté à Grist mais <b>0 ligne reçue</b>. Vérifiez que le widget pointe sur la bonne table (« Sélectionner les données ») et que l'accès <b>Read table</b> est accordé.",
+    nocsv:"Prévisualisation locale indisponible. À utiliser comme widget Grist."
+  };
+  const el=document.getElementById("list"); if(el) el.innerHTML='<div class="empty">'+(msgs[state]||"")+'</div>';
+  ["count","count2"].forEach(id=>{const e=document.getElementById(id); if(e)e.textContent="0";});
+}
+function ingest(records){
+  records = records || [];
+  if (!records.length){ setEmpty("connected"); return; }
+  KEYRES={}; Object.keys(records[0]).forEach(k=>KEYRES[deburr(k)]=k);
+  DATA = records.map((r,i)=>norm(r,i));
+  buildFilters();
+  apply();
+}
+let gristGotData=false;
+function bootGrist(){
+  grist.ready({requiredAccess:"read table"});
+  grist.onRecords(recs=>{ gristGotData=true; ingest(recs); });
+  setTimeout(()=>{ if(!gristGotData) setEmpty("waiting"); }, 2500);
+}
+function bootCsv(){
+  fetch("acteurs_reemploi_poc.csv").then(r=>r.text()).then(txt=>{
+    const recs=parseCSV(txt);
+    if(!recs.length){ setEmpty("connected"); return; }
+    ingest(recs);
+  }).catch(()=> setEmpty("nocsv"));
+}
+function parseCSV(text){
+  const rows=[]; let row=[], field="", q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){field+='"';i++;} else q=false; } else field+=c; }
+    else { if(c==='"')q=true; else if(c===',')row.push(field),field=""; else if(c==='\n')row.push(field),rows.push(row),row=[],field=""; else if(c==='\r'){} else field+=c; }
+  }
+  if(field.length||row.length){ row.push(field); rows.push(row); }
+  const head=rows.shift(); if(!head)return [];
+  return rows.filter(r=>r.length>1).map(r=>{const o={};head.forEach((h,i)=>o[h.trim()]=r[i]!=null?r[i]:"");return o;});
+}
+
+initMap();
+// Un widget custom Grist tourne toujours dans une iframe. En haut niveau (preview
+// GitHub Pages / ouverture locale), on bascule sur le CSV servi à côté du widget.
+const embedded = window.self !== window.top;
+if (embedded && typeof grist !== "undefined" && grist.ready) bootGrist();
+else bootCsv();
+</script>
+</body>
+</html>
