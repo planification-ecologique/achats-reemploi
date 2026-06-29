@@ -100,15 +100,13 @@
             <input id="f_nom" type="text" placeholder="Nom de la structure…" />
           </div>
           <div class="grid2">
-            <div class="field"><label>Domaine</label><select id="f_dom"></select></div>
-            <div class="field"><label>Catégorie</label><select id="f_cat"></select></div>
+            <div class="field"><label>Catégorie de produit</label><select id="f_cat"></select></div>
+            <div class="field"><label>Région</label><select id="f_reg"></select></div>
             <div class="field full"><label>Position dans la chaîne du réemploi</label><select id="f_pos"></select></div>
             <div class="field"><label>Activité</label><select id="f_act"></select></div>
             <div class="field"><label>Statut</label><select id="f_stat"></select></div>
-            <div class="field"><label>Zone d'intervention</label><select id="f_zone"></select></div>
-            <div class="field"><label>Département</label><select id="f_dep"></select></div>
+            <div class="field full"><label>Zone d'intervention</label><select id="f_zone"></select></div>
           </div>
-          <div class="field full" style="margin-bottom:0"><label>Filtres rapides — Domaine</label><div class="quick" id="quick_dom"></div></div>
         </div>
       </details>
       <details open>
@@ -134,14 +132,56 @@
 "use strict";
 
 const COLS = {
-  nom:"Nom_structure", statut:"Statut_structure", dom:"Domaine", siret:"SIRET",
+  nom:"Nom_structure", statut:"Statut_structure", siret:"SIRET",
   cat:"Categorie_produits", act:"Activite_structure", pos:"Position_chaine",
   adresse:"Adresse", ville:"Ville", dep:"Departement", zone:"Zone_intervention",
   site:"Site_internet", presentation:"Presentation", certs:"Certifications",
   lat:"Latitude", lng:"Longitude"
 };
-// Domaine est multi-valué (une structure peut couvrir plusieurs domaines d'activité).
-const MULTI = ["dom","cat","act","certs"];
+const MULTI = ["cat","act","certs"];
+
+const POS_MAP = {
+  "Je collecte": "Collecte de biens en fin d'usage",
+  "Je vends": "Achat de biens",
+  "Je collecte et je vends": "Collecte et achat de biens",
+};
+
+const DEP_TO_REG = {
+  "01":"Auvergne-Rhône-Alpes","02":"Hauts-de-France","03":"Auvergne-Rhône-Alpes",
+  "04":"Provence-Alpes-Côte d'Azur","05":"Provence-Alpes-Côte d'Azur","06":"Provence-Alpes-Côte d'Azur",
+  "07":"Auvergne-Rhône-Alpes","08":"Grand Est","09":"Occitanie","10":"Grand Est",
+  "11":"Occitanie","12":"Occitanie","13":"Provence-Alpes-Côte d'Azur","14":"Normandie",
+  "15":"Auvergne-Rhône-Alpes","16":"Nouvelle-Aquitaine","17":"Nouvelle-Aquitaine",
+  "18":"Centre-Val de Loire","19":"Nouvelle-Aquitaine","2A":"Corse","2B":"Corse",
+  "21":"Bourgogne-Franche-Comté","22":"Bretagne","23":"Nouvelle-Aquitaine",
+  "24":"Nouvelle-Aquitaine","25":"Bourgogne-Franche-Comté","26":"Auvergne-Rhône-Alpes",
+  "27":"Normandie","28":"Centre-Val de Loire","29":"Bretagne","30":"Occitanie",
+  "31":"Occitanie","32":"Occitanie","33":"Nouvelle-Aquitaine","34":"Occitanie",
+  "35":"Bretagne","36":"Centre-Val de Loire","37":"Centre-Val de Loire",
+  "38":"Auvergne-Rhône-Alpes","39":"Bourgogne-Franche-Comté","40":"Nouvelle-Aquitaine",
+  "41":"Centre-Val de Loire","42":"Auvergne-Rhône-Alpes","43":"Auvergne-Rhône-Alpes",
+  "44":"Pays de la Loire","45":"Centre-Val de Loire","46":"Occitanie",
+  "47":"Nouvelle-Aquitaine","48":"Occitanie","49":"Pays de la Loire","50":"Normandie",
+  "51":"Grand Est","52":"Grand Est","53":"Pays de la Loire","54":"Grand Est",
+  "55":"Grand Est","56":"Bretagne","57":"Grand Est","58":"Bourgogne-Franche-Comté",
+  "59":"Hauts-de-France","60":"Hauts-de-France","61":"Normandie","62":"Hauts-de-France",
+  "63":"Auvergne-Rhône-Alpes","64":"Nouvelle-Aquitaine","65":"Occitanie","66":"Occitanie",
+  "67":"Grand Est","68":"Grand Est","69":"Auvergne-Rhône-Alpes","70":"Bourgogne-Franche-Comté",
+  "71":"Bourgogne-Franche-Comté","72":"Pays de la Loire","73":"Auvergne-Rhône-Alpes",
+  "74":"Auvergne-Rhône-Alpes","75":"Île-de-France","76":"Normandie","77":"Île-de-France",
+  "78":"Île-de-France","79":"Nouvelle-Aquitaine","80":"Hauts-de-France","81":"Occitanie",
+  "82":"Occitanie","83":"Provence-Alpes-Côte d'Azur","84":"Provence-Alpes-Côte d'Azur",
+  "85":"Pays de la Loire","86":"Nouvelle-Aquitaine","87":"Nouvelle-Aquitaine",
+  "88":"Grand Est","89":"Bourgogne-Franche-Comté","90":"Bourgogne-Franche-Comté",
+  "91":"Île-de-France","92":"Île-de-France","93":"Île-de-France","94":"Île-de-France",
+  "95":"Île-de-France","971":"Guadeloupe","972":"Martinique","973":"Guyane",
+  "974":"La Réunion","976":"Mayotte",
+};
+function depToReg(depStr){
+  const m = String(depStr).match(/^(\d{2,3}|2[AB])/i);
+  if (!m) return "";
+  return DEP_TO_REG[m[1].toUpperCase()] || DEP_TO_REG[m[1].padStart(2,"0")] || "";
+}
 
 let DATA = [];
 let markers = {};
@@ -192,6 +232,8 @@ function norm(rec, idx){
     o[k] = MULTI.includes(k) ? asList(v) : scalar(v);
   }
   o.lat = parseFloat(o.lat); o.lng = parseFloat(o.lng);
+  o.reg = depToReg(o.dep);
+  o.pos = POS_MAP[o.pos] || o.pos;
   return o;
 }
 function uniq(values){ return [...new Set(values)].sort((a,b)=>String(a).localeCompare(String(b),"fr")); }
@@ -203,14 +245,12 @@ function fillSelect(id, label, values){
   if (values.includes(cur)) sel.value = cur;
 }
 function buildFilters(){
-  fillSelect("f_dom","Tous", uniq(DATA.flatMap(d=>d.dom)));
   fillSelect("f_cat","Toutes", uniq(DATA.flatMap(d=>d.cat)));
+  fillSelect("f_reg","Toutes", uniq(DATA.map(d=>d.reg).filter(Boolean)));
   fillSelect("f_pos","Toutes", uniq(DATA.map(d=>d.pos).filter(Boolean)));
   fillSelect("f_act","Toutes", uniq(DATA.flatMap(d=>d.act)));
   fillSelect("f_stat","Tous", uniq(DATA.map(d=>d.statut).filter(Boolean)));
   fillSelect("f_zone","Toutes", uniq(DATA.map(d=>d.zone).filter(Boolean)));
-  fillSelect("f_dep","Tous", uniq(DATA.map(d=>d.dep).filter(Boolean)));
-  buildQuick("quick_dom","f_dom", uniq(DATA.flatMap(d=>d.dom)));
 }
 // Raccourci de filtre (chips) : un clic règle/efface le select associé.
 function buildQuick(containerId, selectId, values){
@@ -224,21 +264,20 @@ function buildQuick(containerId, selectId, values){
 function getFilters(){
   return {
     nom: document.getElementById("f_nom").value.trim().toLowerCase(),
-    dom: document.getElementById("f_dom").value,
     cat: document.getElementById("f_cat").value, pos: document.getElementById("f_pos").value,
+    reg: document.getElementById("f_reg").value,
     act: document.getElementById("f_act").value, stat: document.getElementById("f_stat").value,
-    zone: document.getElementById("f_zone").value, dep: document.getElementById("f_dep").value,
+    zone: document.getElementById("f_zone").value,
   };
 }
 function match(d, f){
   if (f.nom && !String(d.nom).toLowerCase().includes(f.nom)) return false;
-  if (f.dom && !d.dom.includes(f.dom)) return false;
   if (f.cat && !d.cat.includes(f.cat)) return false;
   if (f.pos && d.pos !== f.pos) return false;
+  if (f.reg && d.reg !== f.reg) return false;
   if (f.act && !d.act.includes(f.act)) return false;
   if (f.stat && d.statut !== f.stat) return false;
   if (f.zone && d.zone !== f.zone) return false;
-  if (f.dep && d.dep !== f.dep) return false;
   return true;
 }
 function apply(){
@@ -261,7 +300,6 @@ function apply(){
   document.getElementById("count").textContent=shown.length;
   document.getElementById("count2").textContent=shown.length;
   renderList(shown);
-  syncQuick("quick_dom","f_dom");
   frameTo(bounds);
   fixSize();
 }
@@ -287,7 +325,7 @@ function renderList(items){
   el.innerHTML = items.map(d=>`
     <div class="item${d._id===selId?' sel':''}" data-id="${d._id}">
       <div class="nm">${escapeHtml(d.nom)}</div>
-      <div class="meta">${escapeHtml([d.ville, d.dep].filter(Boolean).join(" · "))}</div>
+      <div class="meta">${escapeHtml([d.ville, d.reg].filter(Boolean).join(" · "))}</div>
       <span class="tag">${escapeHtml(d.statut)}</span>
     </div>`).join("");
   el.querySelectorAll(".item").forEach(node=>{
@@ -326,20 +364,19 @@ function showDetail(d){
     <h2>${escapeHtml(d.nom||"")}</h2>
     <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">${escapeHtml(d.presentation||"")}</p>
     ${site}
-    ${rc("Domaine", d.dom)}
     ${r("SIRET", d.siret)}
-    ${rc("Catégories", d.cat)}
+    ${rc("Catégorie de produit", d.cat)}
     ${rc("Activités", d.act)}
     ${r("Position dans la chaîne du réemploi", d.pos)}
     ${r("Ville", d.ville)}
-    ${r("Département", d.dep)}
+    ${r("Région", d.reg)}
     ${r("Zone d'intervention", d.zone)}
-    ${rc("Reconnaissances (labels, certifications, distinction)", d.certs)}`;
+    ${rc("Reconnaissances obtenues (labels, certifications, normes iso)", d.certs)}`;
   el.querySelector(".close").onclick=()=>{el.style.display="none";};
   el.style.display="block";
 }
 
-const FILTER_IDS = ["f_nom","f_dom","f_cat","f_pos","f_act","f_stat","f_zone","f_dep"];
+const FILTER_IDS = ["f_nom","f_cat","f_pos","f_reg","f_act","f_stat","f_zone"];
 FILTER_IDS.forEach(id=>{
   document.getElementById(id).addEventListener("input",apply);
 });
