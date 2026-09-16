@@ -47,7 +47,7 @@ Colonnes alignées sur le §7.1 du PRD :
 | `Domaine` | Liste de choix | Informatique / Mobilier / Électroménager (multi-tag, séparés par `;`) |
 | `SIRET` | Texte | 14 chiffres |
 | `Categorie_produits` | Liste de choix | catégories art. 58 (séparées par `;`) |
-| `Activite_structure` | Liste de choix | Réparation / Reconditionnement / Nettoyage ou Lavage / Upcycling / Point de collecte / Distribution (`;`) |
+| `Activite_structure` | Liste de choix | Réparation / Reconditionnement / Nettoyage ou Lavage / Upcycling / Collecte / Distribution (`;`) |
 | `Position_chaine` | Choix | Je collecte / Je répare / Je vends / Je collecte et je vends |
 | `Adresse`, `Ville` | Texte | — |
 | `Departement` | Choix | `NN - Nom` |
