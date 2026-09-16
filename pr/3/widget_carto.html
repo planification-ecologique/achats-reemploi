@@ -21,15 +21,26 @@
   :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
   #app{display:flex;height:100vh;min-height:420px}
   /* Sidebar */
-  #sidebar{width:340px;flex:0 0 340px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--panel);min-height:0}
+  #sidebar{width:400px;flex:0 0 400px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--panel);min-height:0}
   #sidebar header{padding:12px 16px;border-bottom:1px solid var(--border);background:#fff}
-  .brand{display:flex;align-items:center;gap:9px;margin-bottom:4px}
-  .brand .logo{flex:0 0 30px;width:30px;height:30px}
+  .brand{display:flex;align-items:flex-start;gap:9px;margin-bottom:4px}
+  .brand .logo{flex:0 0 30px;width:30px;height:30px;margin-top:1px}
+  .brand-text{flex:1;min-width:0}
+  .brand-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
   #sidebar header h1{font-size:14px;line-height:1.25;margin:0}
-  #sidebar header p{font-size:11px;color:var(--muted);margin:0}
+  #sidebar header p{font-size:11px;color:var(--muted);margin:4px 0 0}
+  .info-btn{flex:0 0 auto;width:28px;height:28px;border:1px solid var(--border);border-radius:50%;background:#fff;color:var(--accent);font-size:13px;font-weight:700;font-style:italic;font-family:Georgia,serif;cursor:pointer;line-height:1;padding:0}
+  .info-btn[aria-expanded="true"]{background:var(--accent-soft);border-color:var(--accent)}
   .cta{display:block;margin-top:10px;padding:8px 10px;background:var(--accent);color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-align:center;text-decoration:none}
   .cta:hover{filter:brightness(.95)}
   .scroll{overflow:auto;flex:1;min-height:0}
+  #help{display:none;padding:12px 16px 14px;border-bottom:1px solid var(--border);background:#fff;font-size:12.5px;line-height:1.45;color:var(--ink)}
+  #help[aria-hidden="false"]{display:block}
+  #help h2{font-size:13px;margin:0 0 8px}
+  #help ul{margin:0 0 8px;padding-left:1.2em}
+  #help li{margin-bottom:4px}
+  #help p{margin:0 0 8px;color:var(--muted)}
+  #help p:last-child{margin-bottom:0}
   details{border-bottom:1px solid var(--border)}
   details>summary{cursor:pointer;padding:10px 16px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;list-style:none}
   details>summary::-webkit-details-marker{display:none}
@@ -52,9 +63,11 @@
   .item .nm{display:block;font-size:13px;font-weight:600;margin-bottom:2px}
   .item .meta{display:block;font-size:11px;color:var(--muted)}
   .item .tag{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600;margin-top:5px}
-  .bar{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-top:1px solid var(--border);background:#fff;font-size:12px}
+  .bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:9px 16px;border-top:1px solid var(--border);background:#fff;font-size:12px}
   .bar b{color:var(--accent)}
-  .bar .reset{border:none;background:none;padding:0;color:var(--muted);cursor:pointer;text-decoration:underline;font-size:12px;font-family:inherit}
+  .bar-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+  .bar .linkish{border:none;background:none;padding:0;color:var(--muted);cursor:pointer;text-decoration:underline;font-size:12px;font-family:inherit}
+  .bar .linkish:disabled{opacity:.45;cursor:not-allowed;text-decoration:none}
   /* Map */
   #mapwrap{flex:1;position:relative;min-width:0}
   #map{position:absolute;inset:0}
@@ -90,22 +103,38 @@
           <circle cx="16" cy="16" r="15" fill="var(--accent)"/>
           <path d="M16 7l3.4 5.9h-2.2v4.1h-2.4v-4.1h-2.2L16 7zm-7 9.2l2 3.4 1.8-3.4h-1.1l1.6-2.8-2.1-1.2-2.4 4.2-0.9-0.5 1.1 0.3zm14 0l-1.1-0.3 1.1 0.5-2.4-4.2-2.1 1.2 1.6 2.8h-1.1l1.8 3.4 2.2-3.4z" fill="#fff"/>
         </svg>
-        <h1>Les acteurs du réemploi pour une commande publique circulaire</h1>
+        <div class="brand-text">
+          <div class="brand-top">
+            <h1>Les acteurs du réemploi pour une commande publique circulaire</h1>
+            <button type="button" class="info-btn" id="help_toggle" aria-expanded="false" aria-controls="help" title="Aide et notice d'utilisation">i<span class="sr-only"> Afficher l'aide</span></button>
+          </div>
+          <p>Pour les acheteurs publics — SPASER / art. 58 loi AGEC</p>
+        </div>
       </div>
-      <p>Pour les acheteurs publics — SPASER / art. 58 loi AGEC</p>
-      <!-- Bouton de référencement : renvoie vers le questionnaire de présentation des structures.
-           TODO : remplacer QUESTIONNAIRE_URL par l'URL réelle du questionnaire. -->
+      <!-- Bouton de référencement : renvoie vers le questionnaire de présentation des structures. -->
       <a id="cta" class="cta" href="#" target="_blank" rel="noopener noreferrer">Vous êtes un acteur du réemploi ? Se référencer <span class="sr-only">(nouvel onglet)</span></a>
     </header>
+    <div id="help" role="region" aria-labelledby="help-title" aria-hidden="true">
+      <h2 id="help-title" tabindex="-1">Notice d'utilisation</h2>
+      <p>Cet outil aide les acheteurs publics à identifier des acteurs du réemploi susceptibles de répondre à leurs marchés (mesure SPASER / art.&nbsp;58 loi AGEC).</p>
+      <ul>
+        <li><strong>Périmètre</strong> : France (métropole et DROM-COM), produits visés par l'art.&nbsp;58 (informatique, mobilier, électroménager, etc.).</li>
+        <li><strong>Rechercher</strong> : filtrez par nom, SIRET, catégorie, région, activité, statut ou zone d'intervention. La liste et la carte se mettent à jour ensemble.</li>
+        <li><strong>Consulter</strong> : cliquez une structure dans la liste (parcours accessible) ou sur la carte pour ouvrir sa fiche.</li>
+        <li><strong>Exporter</strong> : téléchargez un fichier Excel/CSV des <em>seuls</em> résultats de votre recherche courante.</li>
+        <li><strong>Se référencer</strong> : les structures peuvent déposer une fiche via le bouton ci-dessus (modération avant publication).</li>
+      </ul>
+      <p>Jeu de données en cours de fiabilisation (POC). Pour un export de la table complète, utilisez aussi les fonctions natives de Grist.</p>
+    </div>
     <div class="scroll">
       <details open>
         <summary>Filtres</summary>
         <div class="filters">
-          <div class="field full">
-            <label for="f_nom">Recherche par nom</label>
-            <input id="f_nom" type="search" placeholder="Nom de la structure…" autocomplete="off" />
-          </div>
           <div class="grid2">
+            <div class="field"><label for="f_nom">Nom</label>
+              <input id="f_nom" type="search" placeholder="Nom de la structure…" autocomplete="off" /></div>
+            <div class="field"><label for="f_siret">SIRET</label>
+              <input id="f_siret" type="search" inputmode="numeric" placeholder="14 chiffres…" autocomplete="off" /></div>
             <div class="field"><label for="f_cat">Catégorie de produit</label><select id="f_cat"></select></div>
             <div class="field"><label for="f_reg">Région</label><select id="f_reg"></select></div>
             <div class="field full"><label for="f_pos">Position dans la chaîne du réemploi</label><select id="f_pos"></select></div>
@@ -122,7 +151,10 @@
     </div>
     <div class="bar">
       <span aria-live="polite"><b id="count">0</b> structure(s)</span>
-      <button type="button" class="reset" id="reset">Réinitialiser les filtres</button>
+      <div class="bar-actions">
+        <button type="button" class="linkish" id="export" disabled>Exporter la recherche (Excel)</button>
+        <button type="button" class="linkish" id="reset">Réinitialiser</button>
+      </div>
     </div>
   </aside>
   <main id="mapwrap" aria-label="Carte des acteurs du réemploi. Pour un parcours accessible, utilisez la liste des acteurs.">
@@ -193,6 +225,7 @@ let DATA = [];
 let markers = {};
 let cluster, map;
 let selId = null;
+let LAST_SHOWN = [];
 
 function initMap(){
   map = L.map("map", {scrollWheelZoom:true, preferCanvas:false, minZoom:2, worldCopyJump:true}).setView([46.6, 2.4], 6);
@@ -271,6 +304,7 @@ function buildQuick(containerId, selectId, values){
 function getFilters(){
   return {
     nom: document.getElementById("f_nom").value.trim().toLowerCase(),
+    siret: document.getElementById("f_siret").value.replace(/\s/g,""),
     cat: document.getElementById("f_cat").value, pos: document.getElementById("f_pos").value,
     reg: document.getElementById("f_reg").value,
     act: document.getElementById("f_act").value, stat: document.getElementById("f_stat").value,
@@ -279,6 +313,7 @@ function getFilters(){
 }
 function match(d, f){
   if (f.nom && !String(d.nom).toLowerCase().includes(f.nom)) return false;
+  if (f.siret && !String(d.siret).replace(/\s/g,"").includes(f.siret)) return false;
   if (f.cat && !d.cat.includes(f.cat)) return false;
   if (f.pos && d.pos !== f.pos) return false;
   if (f.reg && d.reg !== f.reg) return false;
@@ -307,6 +342,9 @@ function apply(){
   });
   document.getElementById("count").textContent=shown.length;
   document.getElementById("count2").textContent=shown.length;
+  LAST_SHOWN = shown;
+  const exp=document.getElementById("export");
+  if (exp) exp.disabled = !shown.length;
   renderList(shown);
   frameTo(bounds);
   fixSize();
@@ -410,7 +448,7 @@ function showDetail(d){
   el.querySelector(".close").focus();
 }
 
-const FILTER_IDS = ["f_nom","f_cat","f_pos","f_reg","f_act","f_stat","f_zone"];
+const FILTER_IDS = ["f_nom","f_siret","f_cat","f_pos","f_reg","f_act","f_stat","f_zone"];
 FILTER_IDS.forEach(id=>{
   document.getElementById(id).addEventListener("input",apply);
 });
@@ -419,10 +457,56 @@ document.getElementById("reset").onclick=()=>{
   closeDetail(); selId=null;
   apply();
 };
+
+function csvCell(v){
+  const s = Array.isArray(v) ? v.join("; ") : String(v==null?"":v);
+  if (/[",\n\r]/.test(s)) return '"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+function exportShown(){
+  if (!LAST_SHOWN.length) return;
+  const headers = [
+    ["Nom_structure","nom"],["SIRET","siret"],["Statut_structure","statut"],
+    ["Categorie_produits","cat"],["Activite_structure","act"],["Position_chaine","pos"],
+    ["Adresse","adresse"],["Ville","ville"],["Departement","dep"],["Region","reg"],
+    ["Zone_intervention","zone"],["Site_internet","site"],["Presentation","presentation"],
+    ["Certifications","certs"],["Latitude","lat"],["Longitude","lng"]
+  ];
+  const lines = [headers.map(h=>h[0]).join(",")];
+  LAST_SHOWN.forEach(d=>{
+    lines.push(headers.map(([,k])=>csvCell(d[k])).join(","));
+  });
+  // BOM UTF-8 + séparateur ; hint Excel FR via sep=, still comma (standard) — BOM enough for Excel
+  const blob = new Blob(["\uFEFF"+lines.join("\r\n")], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = URL.createObjectURL(blob);
+  a.download = "acteurs-reemploi-recherche-"+stamp+".csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+document.getElementById("export").onclick=exportShown;
+
+function setHelpOpen(open){
+  const panel=document.getElementById("help");
+  const btn=document.getElementById("help_toggle");
+  panel.setAttribute("aria-hidden", open ? "false" : "true");
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+  if (open){
+    const t=panel.querySelector("#help-title");
+    if (t) t.focus();
+  }
+}
+document.getElementById("help_toggle").onclick=()=>{
+  const open = document.getElementById("help").getAttribute("aria-hidden")!=="false";
+  setHelpOpen(open);
+};
+
 document.addEventListener("keydown", e=>{
   if (e.key!=="Escape") return;
-  const el=document.getElementById("detail");
-  if (el && el.style.display==="block") closeDetail();
+  const detail=document.getElementById("detail");
+  if (detail && detail.style.display==="block"){ closeDetail(); return; }
+  if (document.getElementById("help").getAttribute("aria-hidden")==="false") setHelpOpen(false);
 });
 
 // URL du questionnaire de référencement (« se manifester »).
@@ -442,6 +526,8 @@ function setEmpty(state){
   };
   const el=document.getElementById("list"); if(el) el.innerHTML='<li class="empty" role="status">'+(msgs[state]||"")+'</li>';
   ["count","count2"].forEach(id=>{const e=document.getElementById(id); if(e)e.textContent="0";});
+  LAST_SHOWN=[];
+  const exp=document.getElementById("export"); if(exp) exp.disabled=true;
 }
 function ingest(records){
   records = records || [];
