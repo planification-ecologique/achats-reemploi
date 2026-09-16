@@ -9,12 +9,16 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 <style>
   :root{
-    --bg:#ffffff; --panel:#f5f7fa; --border:#dce1e8; --ink:#1b2733; --muted:#5b6b7b;
-    --accent:#1d7a4d; --accent-soft:#e3f3ea; --chip:#eef2f6;
+    --bg:#ffffff; --panel:#f5f7fa; --border:#dce1e8; --ink:#1b2733; --muted:#4a5a6a;
+    --accent:#1a6b44; --accent-soft:#e3f3ea; --chip:#eef2f6; --focus:#0b57d0;
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;width:100%}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+  .skip-link{position:absolute;left:-9999px;top:auto;z-index:10000;padding:8px 12px;background:#fff;color:var(--ink);border:2px solid var(--focus);border-radius:6px;font-size:14px;font-weight:600;text-decoration:none}
+  .skip-link:focus{left:8px;top:8px}
+  :focus{outline:none}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
   #app{display:flex;height:100vh;min-height:420px}
   /* Sidebar */
   #sidebar{width:340px;flex:0 0 340px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--panel);min-height:0}
@@ -39,25 +43,25 @@
   .field input,.field select{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;background:#fff;color:var(--ink)}
   .quick{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 4px}
   .quick button{border:1px solid var(--border);background:#fff;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;color:var(--ink)}
-  .quick button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .quick button.on,.quick button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
   /* List */
-  #list{padding:6px 10px 14px}
-  .item{background:#fff;border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:7px;cursor:pointer;transition:border-color .12s,box-shadow .12s}
+  #list{list-style:none;margin:0;padding:6px 10px 14px}
+  .item{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:#fff;border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:7px;cursor:pointer;transition:border-color .12s,box-shadow .12s}
   .item:hover{border-color:var(--accent);box-shadow:0 2px 8px rgba(20,40,60,.08)}
-  .item.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
-  .item .nm{font-size:13px;font-weight:600;margin-bottom:2px}
-  .item .meta{font-size:11px;color:var(--muted)}
+  .item.sel,.item[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  .item .nm{display:block;font-size:13px;font-weight:600;margin-bottom:2px}
+  .item .meta{display:block;font-size:11px;color:var(--muted)}
   .item .tag{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600;margin-top:5px}
   .bar{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-top:1px solid var(--border);background:#fff;font-size:12px}
   .bar b{color:var(--accent)}
-  .bar a{color:var(--muted);cursor:pointer;text-decoration:underline;font-size:12px}
+  .bar .reset{border:none;background:none;padding:0;color:var(--muted);cursor:pointer;text-decoration:underline;font-size:12px;font-family:inherit}
   /* Map */
   #mapwrap{flex:1;position:relative;min-width:0}
   #map{position:absolute;inset:0}
   /* Detail card */
   #detail{position:absolute;top:12px;right:12px;width:330px;max-height:calc(100% - 24px);overflow:auto;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 30px rgba(20,40,60,.18);padding:16px;display:none;z-index:1000}
   #detail h2{font-size:15px;margin:0 24px 6px 0}
-  #detail .close{position:absolute;top:10px;right:12px;border:none;background:none;font-size:20px;cursor:pointer;color:var(--muted);line-height:1}
+  #detail .close{position:absolute;top:10px;right:12px;border:none;background:none;font-size:20px;cursor:pointer;color:var(--muted);line-height:1;padding:4px 6px;border-radius:4px}
   .badge{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;margin-bottom:8px}
   .row{font-size:12.5px;margin:8px 0;display:flex;flex-direction:column;gap:2px}
   .row .k{color:var(--muted);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.02em}
@@ -66,6 +70,7 @@
   .chips span{background:var(--chip);border-radius:5px;padding:2px 7px;font-size:11px}
   #detail a.web{display:inline-block;margin-top:6px;color:var(--accent);font-size:12.5px;word-break:break-all}
   .empty{padding:18px;color:var(--muted);font-size:12.5px;text-align:center}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   @media (max-width:720px){
     #app{flex-direction:column}
     #sidebar{width:100%;flex:1 1 50%}
@@ -75,8 +80,9 @@
 </style>
 </head>
 <body>
+<a class="skip-link" href="#list">Aller à la liste des acteurs</a>
 <div id="app">
-  <div id="sidebar">
+  <aside id="sidebar" aria-label="Filtres et liste des acteurs">
     <header>
       <div class="brand">
         <!-- Logo : remplacer ce SVG par le logo officiel (ex. <img src="logo.svg" alt="…">) -->
@@ -89,40 +95,40 @@
       <p>Pour les acheteurs publics — SPASER / art. 58 loi AGEC</p>
       <!-- Bouton de référencement : renvoie vers le questionnaire de présentation des structures.
            TODO : remplacer QUESTIONNAIRE_URL par l'URL réelle du questionnaire. -->
-      <a id="cta" class="cta" href="#" target="_blank" rel="noopener">Vous êtes un acteur du réemploi ? Se référencer</a>
+      <a id="cta" class="cta" href="#" target="_blank" rel="noopener noreferrer">Vous êtes un acteur du réemploi ? Se référencer <span class="sr-only">(nouvel onglet)</span></a>
     </header>
     <div class="scroll">
       <details open>
         <summary>Filtres</summary>
         <div class="filters">
           <div class="field full">
-            <label>Recherche par nom</label>
-            <input id="f_nom" type="text" placeholder="Nom de la structure…" />
+            <label for="f_nom">Recherche par nom</label>
+            <input id="f_nom" type="search" placeholder="Nom de la structure…" autocomplete="off" />
           </div>
           <div class="grid2">
-            <div class="field"><label>Catégorie de produit</label><select id="f_cat"></select></div>
-            <div class="field"><label>Région</label><select id="f_reg"></select></div>
-            <div class="field full"><label>Position dans la chaîne du réemploi</label><select id="f_pos"></select></div>
-            <div class="field"><label>Activité</label><select id="f_act"></select></div>
-            <div class="field"><label>Statut</label><select id="f_stat"></select></div>
-            <div class="field full"><label>Zone d'intervention</label><select id="f_zone"></select></div>
+            <div class="field"><label for="f_cat">Catégorie de produit</label><select id="f_cat"></select></div>
+            <div class="field"><label for="f_reg">Région</label><select id="f_reg"></select></div>
+            <div class="field full"><label for="f_pos">Position dans la chaîne du réemploi</label><select id="f_pos"></select></div>
+            <div class="field"><label for="f_act">Activité</label><select id="f_act"></select></div>
+            <div class="field"><label for="f_stat">Statut</label><select id="f_stat"></select></div>
+            <div class="field full"><label for="f_zone">Zone d'intervention</label><select id="f_zone"></select></div>
           </div>
         </div>
       </details>
       <details open>
         <summary>Liste des acteurs (<span id="count2">0</span>)</summary>
-        <div id="list"></div>
+        <ul id="list" tabindex="-1"></ul>
       </details>
     </div>
     <div class="bar">
-      <span><b id="count">0</b> structure(s)</span>
-      <a id="reset">Réinitialiser</a>
+      <span aria-live="polite"><b id="count">0</b> structure(s)</span>
+      <button type="button" class="reset" id="reset">Réinitialiser les filtres</button>
     </div>
-  </div>
-  <div id="mapwrap">
+  </aside>
+  <main id="mapwrap" aria-label="Carte des acteurs du réemploi. Pour un parcours accessible, utilisez la liste des acteurs.">
     <div id="map"></div>
-    <div id="detail"></div>
-  </div>
+    <div id="detail" role="dialog" aria-modal="true" aria-labelledby="detail-title" aria-hidden="true" hidden></div>
+  </main>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -256,7 +262,8 @@ function buildFilters(){
 function buildQuick(containerId, selectId, values){
   const c = document.getElementById(containerId); c.innerHTML="";
   values.forEach(v=>{
-    const b=document.createElement("button"); b.textContent=v; b.dataset.val=v;
+    const b=document.createElement("button"); b.type="button"; b.textContent=v; b.dataset.val=v;
+    b.setAttribute("aria-pressed","false");
     b.onclick=()=>{ const sel=document.getElementById(selectId); sel.value=(sel.value===v)?"":v; apply(); };
     c.appendChild(b);
   });
@@ -290,7 +297,8 @@ function apply(){
     if (isNaN(d.lat)||isNaN(d.lng)) return;
     let m = markers[d._id];
     if (!m){
-      m = L.marker([d.lat,d.lng]); m.bindTooltip(d.nom);
+      m = L.marker([d.lat,d.lng], {title: d.nom, alt: d.nom});
+      m.bindTooltip(d.nom);
       m.on("click",()=>{ selId=d._id; showDetail(d); highlightList(); });
       markers[d._id]=m;
     }
@@ -321,13 +329,21 @@ function frameTo(bounds){
 }
 function renderList(items){
   const el=document.getElementById("list");
-  if (!items.length){ el.innerHTML='<div class="empty">Aucune structure ne correspond aux filtres.</div>'; return; }
-  el.innerHTML = items.map(d=>`
-    <div class="item${d._id===selId?' sel':''}" data-id="${d._id}">
-      <div class="nm">${escapeHtml(d.nom)}</div>
-      <div class="meta">${escapeHtml([d.ville, d.reg].filter(Boolean).join(" · "))}</div>
-      <span class="tag">${escapeHtml(d.statut)}</span>
-    </div>`).join("");
+  if (!items.length){
+    el.innerHTML='<li class="empty" role="status">Aucune structure ne correspond aux filtres.</li>';
+    return;
+  }
+  el.innerHTML = items.map(d=>{
+    const cur = d._id===selId;
+    return `
+    <li>
+      <button type="button" class="item${cur?' sel':''}" data-id="${d._id}" aria-current="${cur?'true':'false'}">
+        <span class="nm">${escapeHtml(d.nom)}</span>
+        <span class="meta">${escapeHtml([d.ville, d.reg].filter(Boolean).join(" · "))}</span>
+        <span class="tag">${escapeHtml(d.statut)}</span>
+      </button>
+    </li>`;
+  }).join("");
   el.querySelectorAll(".item").forEach(node=>{
     node.onclick=()=>{
       const d = DATA.find(x=>String(x._id)===node.dataset.id);
@@ -337,7 +353,11 @@ function renderList(items){
   });
 }
 function highlightList(){
-  document.querySelectorAll("#list .item").forEach(n=>n.classList.toggle("sel", n.dataset.id===String(selId)));
+  document.querySelectorAll("#list .item").forEach(n=>{
+    const on = n.dataset.id===String(selId);
+    n.classList.toggle("sel", on);
+    n.setAttribute("aria-current", on ? "true" : "false");
+  });
 }
 function focusMarker(d){
   if (isNaN(d.lat)||isNaN(d.lng)) return;
@@ -350,18 +370,29 @@ function focusMarker(d){
 }
 function syncQuick(containerId, selectId){
   const val=document.getElementById(selectId).value;
-  document.querySelectorAll(`#${containerId} button`).forEach(b=>b.classList.toggle("on", b.dataset.val===val));
+  document.querySelectorAll(`#${containerId} button`).forEach(b=>{
+    const on = b.dataset.val===val;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+}
+function closeDetail(){
+  const el=document.getElementById("detail");
+  el.style.display="none";
+  el.setAttribute("aria-hidden","true");
+  el.setAttribute("hidden","");
+  el.innerHTML="";
 }
 function showDetail(d){
   const el=document.getElementById("detail");
   const chips = arr => `<div class="chips">${(arr&&arr.length?arr:[]).map(x=>`<span>${escapeHtml(x)}</span>`).join("")||"—"}</div>`;
-  const site = d.site ? `<a class="web" href="${escapeHtml(d.site)}" target="_blank" rel="noopener">${escapeHtml(d.site)}</a>` : "";
+  const site = d.site ? `<a class="web" href="${escapeHtml(d.site)}" target="_blank" rel="noopener noreferrer">${escapeHtml(d.site)} <span class="sr-only">(nouvel onglet)</span></a>` : "";
   const r = (k,v) => v ? `<div class="row"><span class="k">${k}</span><span class="v">${escapeHtml(v)}</span></div>` : "";
   const rc = (k,arr) => (arr&&arr.length) ? `<div class="row"><span class="k">${k}</span><span class="v">${chips(arr)}</span></div>` : "";
   el.innerHTML = `
-    <button class="close" title="Fermer">×</button>
+    <button type="button" class="close" aria-label="Fermer la fiche">×</button>
     <div class="badge">${escapeHtml(d.statut||"")}</div>
-    <h2>${escapeHtml(d.nom||"")}</h2>
+    <h2 id="detail-title">${escapeHtml(d.nom||"")}</h2>
     <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">${escapeHtml(d.presentation||"")}</p>
     ${site}
     ${r("SIRET", d.siret)}
@@ -372,8 +403,11 @@ function showDetail(d){
     ${r("Région", d.reg)}
     ${r("Zone d'intervention", d.zone)}
     ${rc("Reconnaissances obtenues (labels, certifications, normes iso)", d.certs)}`;
-  el.querySelector(".close").onclick=()=>{el.style.display="none";};
+  el.querySelector(".close").onclick=closeDetail;
+  el.removeAttribute("hidden");
+  el.setAttribute("aria-hidden","false");
   el.style.display="block";
+  el.querySelector(".close").focus();
 }
 
 const FILTER_IDS = ["f_nom","f_cat","f_pos","f_reg","f_act","f_stat","f_zone"];
@@ -382,9 +416,14 @@ FILTER_IDS.forEach(id=>{
 });
 document.getElementById("reset").onclick=()=>{
   FILTER_IDS.forEach(id=>document.getElementById(id).value="");
-  document.getElementById("detail").style.display="none"; selId=null;
+  closeDetail(); selId=null;
   apply();
 };
+document.addEventListener("keydown", e=>{
+  if (e.key!=="Escape") return;
+  const el=document.getElementById("detail");
+  if (el && el.style.display==="block") closeDetail();
+});
 
 // URL du questionnaire de référencement (« se manifester »).
 // Formulaire Grist publié, écrit dans la table Referencement.
@@ -401,7 +440,7 @@ function setEmpty(state){
     connected:"Connecté à Grist mais <b>0 ligne reçue</b>. Vérifiez que le widget pointe sur la bonne table (« Sélectionner les données ») et que l'accès <b>Read table</b> est accordé.",
     nocsv:"Prévisualisation locale indisponible. À utiliser comme widget Grist."
   };
-  const el=document.getElementById("list"); if(el) el.innerHTML='<div class="empty">'+(msgs[state]||"")+'</div>';
+  const el=document.getElementById("list"); if(el) el.innerHTML='<li class="empty" role="status">'+(msgs[state]||"")+'</li>';
   ["count","count2"].forEach(id=>{const e=document.getElementById(id); if(e)e.textContent="0";});
 }
 function ingest(records){
