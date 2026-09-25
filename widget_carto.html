@@ -49,7 +49,7 @@
   /* List */
   #list{list-style:none;margin:0;padding:6px 10px 14px}
   #list li+li{margin-top:.5rem}
-  .item{flex-direction:column;align-items:flex-start;text-align:left}
+  .item{width:100%;text-align:left;flex-direction:column;align-items:flex-start}
   .item.sel,.item[aria-current="true"]{box-shadow:inset 0 0 0 2px var(--accent)}
   .item .nm{display:block;font-size:13px;font-weight:600;margin-bottom:2px}
   .item .meta{display:block;font-size:11px;color:var(--muted)}
@@ -408,7 +408,7 @@ function renderList(items){
     const cur = d._id===selId;
     return `
     <li>
-      <button type="button" class="fr-btn fr-btn--tertiary-no-outline fr-btn--block item${cur?' sel':''}" data-id="${d._id}" aria-current="${cur?'true':'false'}">
+      <button type="button" class="fr-btn fr-btn--tertiary-no-outline item${cur?' sel':''}" data-id="${d._id}" aria-current="${cur?'true':'false'}">
         <span class="nm">${escapeHtml(d.nom)}</span>
         <span class="meta">${escapeHtml([d.ville, d.reg].filter(Boolean).join(" · "))}</span>
         ${(d.statutAtoms||[]).map(s=>`<span class="tag">${escapeHtml(s)}</span>`).join(" ")}
