@@ -139,7 +139,12 @@
             <div class="field"><label for="f_reg">Région</label><select id="f_reg"></select></div>
             <div class="field full"><label for="f_pos">Position dans la chaîne du réemploi</label><select id="f_pos"></select></div>
             <div class="field"><label for="f_act">Activité</label><select id="f_act"></select></div>
-            <div class="field"><label for="f_stat">Statut</label><select id="f_stat"></select></div>
+            <div class="field full" id="f_stat_wrap">
+              <fieldset id="f_stat" class="fr-fieldset">
+                <legend class="fr-fieldset__legend fr-text--regular fr-fieldset__legend--regular">Statut</legend>
+                <div class="fr-fieldset__content" id="f_stat_checks"></div>
+              </fieldset>
+            </div>
             <div class="field full"><label for="f_zone">Zone d'intervention</label><select id="f_zone"></select></div>
           </div>
         </div>
@@ -176,7 +181,7 @@ const COLS = {
   site:"Site_internet", presentation:"Presentation", certs:"Certifications",
   lat:"Latitude", lng:"Longitude"
 };
-const MULTI = ["cat","act","certs"];
+const MULTI = ["cat","act","certs","statut"];
 
 const POS_MAP = {
   "Je collecte": "Collecte de biens en fin d'usage",
@@ -270,6 +275,8 @@ function norm(rec, idx){
     const v = val(rec, COLS[k]);
     o[k] = MULTI.includes(k) ? asList(v) : scalar(v);
   }
+  o.statutAtoms = Array.isArray(o.statut) ? o.statut.slice() : asList(o.statut);
+  o.statut = o.statutAtoms.join(", ");
   o.lat = parseFloat(o.lat); o.lng = parseFloat(o.lng);
   o.reg = depToReg(o.dep);
   o.pos = POS_MAP[o.pos] || o.pos;
@@ -283,12 +290,29 @@ function fillSelect(id, label, values){
   sel.innerHTML = `<option value="">— ${label} —</option>` + values.map(v=>`<option>${escapeHtml(v)}</option>`).join("");
   if (values.includes(cur)) sel.value = cur;
 }
+function buildStatutChecks(values){
+  const box = document.getElementById("f_stat_checks");
+  const prev = new Set(
+    [...box.querySelectorAll('input[type="checkbox"]:checked')].map(i=>i.value)
+  );
+  box.innerHTML = values.map((v,i)=>{
+    const id = "f_stat_"+i;
+    const checked = prev.has(v) ? " checked" : "";
+    return `<div class="fr-checkbox-group">
+      <input type="checkbox" id="${id}" name="f_stat" value="${escapeHtml(v)}"${checked}>
+      <label class="fr-label" for="${id}">${escapeHtml(v)}</label>
+    </div>`;
+  }).join("");
+  box.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("change", apply);
+  });
+}
 function buildFilters(){
   fillSelect("f_cat","Toutes", uniq(DATA.flatMap(d=>d.cat)));
   fillSelect("f_reg","Toutes", uniq(DATA.map(d=>d.reg).filter(Boolean)));
   fillSelect("f_pos","Toutes", uniq(DATA.map(d=>d.pos).filter(Boolean)));
   fillSelect("f_act","Toutes", uniq(DATA.flatMap(d=>d.act)));
-  fillSelect("f_stat","Tous", uniq(DATA.map(d=>d.statut).filter(Boolean)));
+  buildStatutChecks(uniq(DATA.flatMap(d=>d.statutAtoms)));
   fillSelect("f_zone","Toutes", uniq(DATA.map(d=>d.zone).filter(Boolean)));
 }
 // Raccourci de filtre (chips) : un clic règle/efface le select associé.
@@ -307,7 +331,8 @@ function getFilters(){
     siret: document.getElementById("f_siret").value.replace(/\s/g,""),
     cat: document.getElementById("f_cat").value, pos: document.getElementById("f_pos").value,
     reg: document.getElementById("f_reg").value,
-    act: document.getElementById("f_act").value, stat: document.getElementById("f_stat").value,
+    act: document.getElementById("f_act").value,
+    stat: [...document.querySelectorAll('#f_stat_checks input[type="checkbox"]:checked')].map(i=>i.value),
     zone: document.getElementById("f_zone").value,
   };
 }
@@ -318,7 +343,7 @@ function match(d, f){
   if (f.pos && d.pos !== f.pos) return false;
   if (f.reg && d.reg !== f.reg) return false;
   if (f.act && !d.act.includes(f.act)) return false;
-  if (f.stat && d.statut !== f.stat) return false;
+  if (f.stat.length && !f.stat.some(s => d.statutAtoms.includes(s))) return false;
   if (f.zone && d.zone !== f.zone) return false;
   return true;
 }
@@ -378,7 +403,7 @@ function renderList(items){
       <button type="button" class="item${cur?' sel':''}" data-id="${d._id}" aria-current="${cur?'true':'false'}">
         <span class="nm">${escapeHtml(d.nom)}</span>
         <span class="meta">${escapeHtml([d.ville, d.reg].filter(Boolean).join(" · "))}</span>
-        <span class="tag">${escapeHtml(d.statut)}</span>
+        ${(d.statutAtoms||[]).map(s=>`<span class="tag">${escapeHtml(s)}</span>`).join(" ")}
       </button>
     </li>`;
   }).join("");
@@ -429,7 +454,7 @@ function showDetail(d){
   const rc = (k,arr) => (arr&&arr.length) ? `<div class="row"><span class="k">${k}</span><span class="v">${chips(arr)}</span></div>` : "";
   el.innerHTML = `
     <button type="button" class="close" aria-label="Fermer la fiche">×</button>
-    <div class="badge">${escapeHtml(d.statut||"")}</div>
+    <div class="badge">${escapeHtml((d.statutAtoms||[]).join(" · ")||"")}</div>
     <h2 id="detail-title">${escapeHtml(d.nom||"")}</h2>
     <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">${escapeHtml(d.presentation||"")}</p>
     ${site}
@@ -448,12 +473,13 @@ function showDetail(d){
   el.querySelector(".close").focus();
 }
 
-const FILTER_IDS = ["f_nom","f_siret","f_cat","f_pos","f_reg","f_act","f_stat","f_zone"];
+const FILTER_IDS = ["f_nom","f_siret","f_cat","f_pos","f_reg","f_act","f_zone"];
 FILTER_IDS.forEach(id=>{
   document.getElementById(id).addEventListener("input",apply);
 });
 document.getElementById("reset").onclick=()=>{
   FILTER_IDS.forEach(id=>document.getElementById(id).value="");
+  document.querySelectorAll('#f_stat_checks input[type="checkbox"]').forEach(i=>{ i.checked=false; });
   closeDetail(); selId=null;
   apply();
 };
