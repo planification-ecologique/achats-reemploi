@@ -22,7 +22,11 @@
   #app{display:flex;height:100vh;min-height:420px}
   /* Sidebar */
   #sidebar{width:400px;flex:0 0 400px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--panel);min-height:0}
-  #sidebar header{padding:12px 16px;border-bottom:1px solid var(--border);background:#fff}
+  .sidebar-top{padding:0;background:#fff}
+  .sidebar-buyers{padding:12px 16px;border-bottom:1px solid var(--border)}
+  .sidebar-actors{padding:12px 16px;border-bottom:1px solid var(--border)}
+  .actors-title{margin:0 0 8px}
+  #cta{display:inline-flex;width:auto;text-decoration:none}
   .brand{display:flex;align-items:flex-start;gap:9px;margin-bottom:4px}
   .brand .logo{flex:0 0 30px;width:30px;height:30px;margin-top:1px}
   .brand-text{flex:1;min-width:0}
@@ -96,23 +100,27 @@
 <a class="skip-link" href="#list">Aller à la liste des acteurs</a>
 <div id="app">
   <aside id="sidebar" aria-label="Filtres et liste des acteurs">
-    <header>
-      <div class="brand">
-        <!-- Logo : remplacer ce SVG par le logo officiel (ex. <img src="logo.svg" alt="…">) -->
-        <svg class="logo" viewBox="0 0 32 32" role="img" aria-label="Logo réemploi" focusable="false">
-          <circle cx="16" cy="16" r="15" fill="var(--accent)"/>
-          <path d="M16 7l3.4 5.9h-2.2v4.1h-2.4v-4.1h-2.2L16 7zm-7 9.2l2 3.4 1.8-3.4h-1.1l1.6-2.8-2.1-1.2-2.4 4.2-0.9-0.5 1.1 0.3zm14 0l-1.1-0.3 1.1 0.5-2.4-4.2-2.1 1.2 1.6 2.8h-1.1l1.8 3.4 2.2-3.4z" fill="#fff"/>
-        </svg>
-        <div class="brand-text">
-          <div class="brand-top">
-            <h1>Les acteurs du réemploi pour une commande publique circulaire</h1>
-            <button type="button" class="info-btn" id="help_toggle" aria-expanded="false" aria-controls="help" title="Aide et notice d'utilisation">i<span class="sr-only"> Afficher l'aide</span></button>
+    <header class="sidebar-top">
+      <div id="sidebar-buyers" class="sidebar-buyers">
+        <div class="brand">
+          <!-- Logo : remplacer ce SVG par le logo officiel (ex. <img src="logo.svg" alt="…">) -->
+          <svg class="logo" viewBox="0 0 32 32" role="img" aria-label="Logo réemploi" focusable="false">
+            <circle cx="16" cy="16" r="15" fill="var(--accent)"/>
+            <path d="M16 7l3.4 5.9h-2.2v4.1h-2.4v-4.1h-2.2L16 7zm-7 9.2l2 3.4 1.8-3.4h-1.1l1.6-2.8-2.1-1.2-2.4 4.2-0.9-0.5 1.1 0.3zm14 0l-1.1-0.3 1.1 0.5-2.4-4.2-2.1 1.2 1.6 2.8h-1.1l1.8 3.4 2.2-3.4z" fill="#fff"/>
+          </svg>
+          <div class="brand-text">
+            <div class="brand-top">
+              <h1>Les acteurs du réemploi pour une commande publique circulaire</h1>
+              <button type="button" class="info-btn" id="help_toggle" aria-expanded="false" aria-controls="help" title="Aide et notice d'utilisation">i<span class="sr-only"> Afficher l'aide</span></button>
+            </div>
+            <p class="fr-text--sm">Pour les acheteurs publics — SPASER / art. 58 loi AGEC</p>
           </div>
-          <p>Pour les acheteurs publics — SPASER / art. 58 loi AGEC</p>
         </div>
       </div>
-      <!-- Bouton de référencement : renvoie vers le questionnaire de présentation des structures. -->
-      <a id="cta" class="cta" href="#" target="_blank" rel="noopener noreferrer">Vous êtes un acteur du réemploi ? Se référencer <span class="sr-only">(nouvel onglet)</span></a>
+      <div id="sidebar-actors" class="sidebar-actors fr-background-alt--grey">
+        <p class="actors-title fr-text--sm fr-mb-1w"><strong>Vous êtes un acteur du réemploi ?</strong></p>
+        <a id="cta" class="fr-btn fr-btn--secondary fr-btn--sm" href="#" target="_blank" rel="noopener noreferrer">Se référencer <span class="sr-only">(nouvel onglet)</span></a>
+      </div>
     </header>
     <div id="help" role="region" aria-labelledby="help-title" aria-hidden="true">
       <h2 id="help-title" tabindex="-1">Notice d'utilisation</h2>
