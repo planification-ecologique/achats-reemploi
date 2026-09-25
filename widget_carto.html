@@ -25,7 +25,6 @@
   .sidebar-top{padding:0;background:#fff}
   .sidebar-buyers{padding:12px 16px;border-bottom:1px solid var(--border)}
   .sidebar-actors{padding:12px 16px;border-bottom:1px solid var(--border)}
-  .actors-title{margin:0 0 8px}
   #cta{display:inline-flex;width:auto;text-decoration:none}
   .brand{display:flex;align-items:flex-start;gap:9px;margin-bottom:4px}
   .brand .logo{flex:0 0 30px;width:30px;height:30px;margin-top:1px}
@@ -53,7 +52,9 @@
   .item.sel,.item[aria-current="true"]{box-shadow:inset 0 0 0 2px var(--accent)}
   .item .nm{display:block;font-size:13px;font-weight:600;margin-bottom:2px}
   .item .meta{display:block;font-size:11px;color:var(--muted)}
-  .item .tag{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600;margin-top:5px}
+  .item .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+  .item .tag{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600}
+  #f_stat{margin-left:0;margin-right:0}
   .bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:9px 16px;border-top:1px solid var(--border);background:#fff;font-size:12px}
   .bar b{color:var(--accent)}
   .bar-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
@@ -284,7 +285,7 @@ function norm(rec, idx){
     o[k] = MULTI.includes(k) ? asList(v) : scalar(v);
   }
   o.statutAtoms = Array.isArray(o.statut) ? o.statut.slice() : asList(o.statut);
-  o.statut = o.statutAtoms.join(", ");
+  o.statut = o.statutAtoms.join("; ");
   o.lat = parseFloat(o.lat); o.lng = parseFloat(o.lng);
   o.reg = depToReg(o.dep);
   o.pos = POS_MAP[o.pos] || o.pos;
@@ -322,16 +323,6 @@ function buildFilters(){
   fillSelect("f_act","Toutes", uniq(DATA.flatMap(d=>d.act)));
   buildStatutChecks(uniq(DATA.flatMap(d=>d.statutAtoms)));
   fillSelect("f_zone","Toutes", uniq(DATA.map(d=>d.zone).filter(Boolean)));
-}
-// Raccourci de filtre (chips) : un clic règle/efface le select associé.
-function buildQuick(containerId, selectId, values){
-  const c = document.getElementById(containerId); c.innerHTML="";
-  values.forEach(v=>{
-    const b=document.createElement("button"); b.type="button"; b.textContent=v; b.dataset.val=v;
-    b.setAttribute("aria-pressed","false");
-    b.onclick=()=>{ const sel=document.getElementById(selectId); sel.value=(sel.value===v)?"":v; apply(); };
-    c.appendChild(b);
-  });
 }
 function getFilters(){
   return {
@@ -411,7 +402,7 @@ function renderList(items){
       <button type="button" class="fr-btn fr-btn--tertiary-no-outline item${cur?' sel':''}" data-id="${d._id}" aria-current="${cur?'true':'false'}">
         <span class="nm">${escapeHtml(d.nom)}</span>
         <span class="meta">${escapeHtml([d.ville, d.reg].filter(Boolean).join(" · "))}</span>
-        ${(d.statutAtoms||[]).map(s=>`<span class="tag">${escapeHtml(s)}</span>`).join(" ")}
+        <span class="tags">${(d.statutAtoms||[]).map(s=>`<span class="tag">${escapeHtml(s)}</span>`).join("")}</span>
       </button>
     </li>`;
   }).join("");
@@ -438,14 +429,6 @@ function focusMarker(d){
   } else {
     map.setView([d.lat,d.lng], 12);
   }
-}
-function syncQuick(containerId, selectId){
-  const val=document.getElementById(selectId).value;
-  document.querySelectorAll(`#${containerId} button`).forEach(b=>{
-    const on = b.dataset.val===val;
-    b.classList.toggle("on", on);
-    b.setAttribute("aria-pressed", on ? "true" : "false");
-  });
 }
 function closeDetail(){
   const el=document.getElementById("detail");
