@@ -39,7 +39,7 @@
   .sidebar-actors{padding:10px 16px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
   #cta{display:inline-flex;width:auto;text-decoration:none}
   .brand-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-  #sidebar header h1{font-size:.875rem;line-height:1.3;margin:0}
+  #sidebar header h1{font-size:.875rem;line-height:1.3;margin:0 0 .35rem}
   #sidebar header .fr-hint-text{margin:.35rem 0 0}
   .scroll{overflow:auto;flex:1;min-height:0}
   /* Infos modal (centered over whole widget) */
@@ -92,7 +92,7 @@
   .item .nm{display:block;font-size:13px;font-weight:600;margin-bottom:2px}
   .item .meta{display:block;font-size:11px;color:var(--muted)}
   .item .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
-  .item .tag{display:inline-block;background:var(--background-contrast-blue-france, var(--accent-soft));color:var(--text-action-high-blue-france, var(--accent));border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600}
+  .item .tag{display:inline-block;background:var(--background-contrast-blue-france, #e8edff);color:var(--text-action-high-blue-france, #000091);border-radius:4px;padding:1px 6px;font-size:10px;font-weight:600}
   .bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:9px 16px;border-top:1px solid var(--border);background:#fff;font-size:12px}
   .bar b{color:var(--accent)}
   .bar-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
@@ -135,13 +135,24 @@
   #detail{position:absolute;top:12px;right:12px;width:330px;max-height:calc(100% - 24px);overflow:auto;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 30px rgba(20,40,60,.18);padding:16px;display:none;z-index:1000}
   #detail h2{font-size:15px;margin:0 24px 6px 0}
   #detail .close{position:absolute;top:10px;right:12px;border:none;background:none;font-size:20px;cursor:pointer;color:var(--muted);line-height:1;padding:4px 6px;border-radius:4px}
-  .badge{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;margin-bottom:8px}
-  .row{font-size:12.5px;margin:8px 0;display:flex;flex-direction:column;gap:2px}
+  #detail .badge.chips{margin:0 0 8px}
+  #detail .badge.chips span{
+    background:var(--background-contrast-blue-france, #e8edff);
+    color:var(--text-action-high-blue-france, #000091);
+    border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;
+  }
+  .row{font-size:12.5px;margin:6px 0;display:flex;flex-direction:column;gap:2px}
+  .row.inline{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:6px 10px;margin:4px 0}
+  .row.inline .k{margin:0}
+  .row.inline .v{font-weight:500}
+  .row-pair{display:flex;flex-wrap:wrap;gap:4px 16px;margin:4px 0}
+  .row-pair .row{margin:0;flex:1 1 auto;min-width:0}
+  .row-pair .row.inline{flex:1 1 140px}
   .row .k{color:var(--muted);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.02em}
-  .row .v{flex:1}
+  .row .v{flex:1;min-width:0}
   .chips{display:flex;flex-wrap:wrap;gap:4px}
-  .chips span{background:var(--chip);border-radius:5px;padding:2px 7px;font-size:11px}
-  #detail a.web{display:inline-block;margin-top:6px;color:var(--accent);font-size:12.5px;word-break:break-all}
+  .chips span{background:var(--background-contrast-blue-france, #e8edff);color:var(--text-action-high-blue-france, #000091);border-radius:4px;padding:2px 7px;font-size:11px}
+  #detail a.web{display:inline-block;margin-top:6px;color:var(--text-action-high-blue-france, #000091);font-size:12.5px;word-break:break-all}
   .empty{padding:18px;color:var(--muted);font-size:12.5px;text-align:center}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   @media (max-width:720px){
@@ -160,11 +171,11 @@
       <div id="sidebar-buyers" class="sidebar-buyers">
         <div class="brand-top">
           <div>
+            <h1>Réemploi pour la commande publique</h1>
             <p class="fr-mb-1v">
               <span class="fr-badge fr-badge--info fr-badge--sm">Projet DAE</span>
               <span class="fr-badge fr-badge--new fr-badge--sm">Bêta</span>
             </p>
-            <h1>Réemploi pour la commande publique</h1>
             <p class="fr-hint-text">Cartographie à destination des acheteurs publics dans le cadre du SPASER de l'État et de l'article 58 de la loi AGEC</p>
           </div>
           <button type="button" class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm" id="help_toggle" aria-expanded="false" aria-controls="help" title="Infos et notice d'utilisation">Infos</button>
@@ -546,21 +557,24 @@ function showDetail(d){
   const el=document.getElementById("detail");
   const chips = arr => `<div class="chips">${(arr&&arr.length?arr:[]).map(x=>`<span>${escapeHtml(x)}</span>`).join("")||"—"}</div>`;
   const site = d.site ? `<a class="web" href="${escapeHtml(d.site)}" target="_blank" rel="noopener noreferrer">${escapeHtml(d.site)} <span class="sr-only">(nouvel onglet)</span></a>` : "";
-  const r = (k,v) => v ? `<div class="row"><span class="k">${k}</span><span class="v">${escapeHtml(v)}</span></div>` : "";
+  const r = (k,v,inline) => v ? `<div class="row${inline?" inline":""}"><span class="k">${k}</span><span class="v">${escapeHtml(v)}</span></div>` : "";
   const rc = (k,arr) => (arr&&arr.length) ? `<div class="row"><span class="k">${k}</span><span class="v">${chips(arr)}</span></div>` : "";
+  const pair = (...parts) => {
+    const html = parts.filter(Boolean).join("");
+    return html ? `<div class="row-pair">${html}</div>` : "";
+  };
   el.innerHTML = `
     <button type="button" class="close" aria-label="Fermer la fiche">×</button>
-    <div class="badge chips">${(d.statutAtoms&&d.statutAtoms.length?d.statutAtoms:[]).map(s=>`<span>${escapeHtml(s)}</span>`).join("")||"—"}</div>
     <h2 id="detail-title">${escapeHtml(d.nom||"")}</h2>
+    <div class="badge chips">${(d.statutAtoms&&d.statutAtoms.length?d.statutAtoms:[]).map(s=>`<span>${escapeHtml(s)}</span>`).join("")||"—"}</div>
     <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">${escapeHtml(d.presentation||"")}</p>
     ${site}
-    ${r("SIRET", d.siret)}
+    ${r("SIRET", d.siret, true)}
     ${rc("Catégorie de produit", d.cat)}
     ${rc("Activité de l'entreprise", d.act)}
     ${r("Besoin de l'acheteur en réemploi", d.pos)}
-    ${r("Ville", d.ville)}
-    ${r("Région", d.reg)}
-    ${r("Zone d'intervention", d.zone)}
+    ${pair(r("Ville", d.ville, true), r("Région", d.reg, true))}
+    ${r("Zone d'intervention", d.zone, true)}
     ${rc("Reconnaissances obtenues (labels, certifications, normes ISO) déclarées par l'entreprise", d.certs)}`;
   el.querySelector(".close").onclick=closeDetail;
   el.removeAttribute("hidden");
