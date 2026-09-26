@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-fr-scheme="light">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Les acteurs du réemploi pour une commande publique circulaire</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.0/dist/dsfr/dsfr.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.0/dist/utility/utility.min.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
@@ -14,15 +16,16 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;width:100%}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+  body{margin:0;height:100%;width:100%;color:var(--ink);background:var(--bg)}
   .skip-link{position:absolute;left:-9999px;top:auto;z-index:10000;padding:8px 12px;background:#fff;color:var(--ink);border:2px solid var(--focus);border-radius:6px;font-size:14px;font-weight:600;text-decoration:none}
   .skip-link:focus{left:8px;top:8px}
-  :focus{outline:none}
-  :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
   #app{display:flex;height:100vh;min-height:420px}
   /* Sidebar */
   #sidebar{width:400px;flex:0 0 400px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--panel);min-height:0}
-  #sidebar header{padding:12px 16px;border-bottom:1px solid var(--border);background:#fff}
+  .sidebar-top{padding:0;background:#fff}
+  .sidebar-buyers{padding:12px 16px;border-bottom:1px solid var(--border)}
+  .sidebar-actors{padding:12px 16px;border-bottom:1px solid var(--border)}
+  #cta{display:inline-flex;width:auto;text-decoration:none}
   .brand{display:flex;align-items:flex-start;gap:9px;margin-bottom:4px}
   .brand .logo{flex:0 0 30px;width:30px;height:30px;margin-top:1px}
   .brand-text{flex:1;min-width:0}
@@ -31,8 +34,6 @@
   #sidebar header p{font-size:11px;color:var(--muted);margin:4px 0 0}
   .info-btn{flex:0 0 auto;width:28px;height:28px;border:1px solid var(--border);border-radius:50%;background:#fff;color:var(--accent);font-size:13px;font-weight:700;font-style:italic;font-family:Georgia,serif;cursor:pointer;line-height:1;padding:0}
   .info-btn[aria-expanded="true"]{background:var(--accent-soft);border-color:var(--accent)}
-  .cta{display:block;margin-top:10px;padding:8px 10px;background:var(--accent);color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-align:center;text-decoration:none}
-  .cta:hover{filter:brightness(.95)}
   .scroll{overflow:auto;flex:1;min-height:0}
   #help{display:none;padding:12px 16px 14px;border-bottom:1px solid var(--border);background:#fff;font-size:12.5px;line-height:1.45;color:var(--ink)}
   #help[aria-hidden="false"]{display:block}
@@ -42,32 +43,21 @@
   #help p{margin:0 0 8px;color:var(--muted)}
   #help p:last-child{margin-bottom:0}
   details{border-bottom:1px solid var(--border)}
-  details>summary{cursor:pointer;padding:10px 16px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;list-style:none}
-  details>summary::-webkit-details-marker{display:none}
-  details>summary::after{content:"▾";float:right;color:var(--muted)}
-  details:not([open])>summary::after{content:"▸"}
+  details>summary{cursor:pointer;margin:0;padding:10px 16px}
   .filters{padding:6px 16px 12px}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .field{margin-bottom:9px}
-  .field.full{grid-column:1/3}
-  .field label{display:block;font-size:10.5px;font-weight:600;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.02em}
-  .field input,.field select{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;background:#fff;color:var(--ink)}
-  .quick{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 4px}
-  .quick button{border:1px solid var(--border);background:#fff;border-radius:999px;padding:4px 9px;font-size:11px;cursor:pointer;color:var(--ink)}
-  .quick button.on,.quick button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
   /* List */
   #list{list-style:none;margin:0;padding:6px 10px 14px}
-  .item{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:#fff;border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:7px;cursor:pointer;transition:border-color .12s,box-shadow .12s}
-  .item:hover{border-color:var(--accent);box-shadow:0 2px 8px rgba(20,40,60,.08)}
-  .item.sel,.item[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  #list li+li{margin-top:.5rem}
+  .item{width:100%;text-align:left;flex-direction:column;align-items:flex-start}
+  .item.sel,.item[aria-current="true"]{box-shadow:inset 0 0 0 2px var(--accent)}
   .item .nm{display:block;font-size:13px;font-weight:600;margin-bottom:2px}
   .item .meta{display:block;font-size:11px;color:var(--muted)}
-  .item .tag{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600;margin-top:5px}
+  .item .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+  .item .tag{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600}
+  #f_stat{margin-left:0;margin-right:0}
   .bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:9px 16px;border-top:1px solid var(--border);background:#fff;font-size:12px}
   .bar b{color:var(--accent)}
   .bar-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
-  .bar .linkish{border:none;background:none;padding:0;color:var(--muted);cursor:pointer;text-decoration:underline;font-size:12px;font-family:inherit}
-  .bar .linkish:disabled{opacity:.45;cursor:not-allowed;text-decoration:none}
   /* Map */
   #mapwrap{flex:1;position:relative;min-width:0}
   #map{position:absolute;inset:0}
@@ -96,23 +86,27 @@
 <a class="skip-link" href="#list">Aller à la liste des acteurs</a>
 <div id="app">
   <aside id="sidebar" aria-label="Filtres et liste des acteurs">
-    <header>
-      <div class="brand">
-        <!-- Logo : remplacer ce SVG par le logo officiel (ex. <img src="logo.svg" alt="…">) -->
-        <svg class="logo" viewBox="0 0 32 32" role="img" aria-label="Logo réemploi" focusable="false">
-          <circle cx="16" cy="16" r="15" fill="var(--accent)"/>
-          <path d="M16 7l3.4 5.9h-2.2v4.1h-2.4v-4.1h-2.2L16 7zm-7 9.2l2 3.4 1.8-3.4h-1.1l1.6-2.8-2.1-1.2-2.4 4.2-0.9-0.5 1.1 0.3zm14 0l-1.1-0.3 1.1 0.5-2.4-4.2-2.1 1.2 1.6 2.8h-1.1l1.8 3.4 2.2-3.4z" fill="#fff"/>
-        </svg>
-        <div class="brand-text">
-          <div class="brand-top">
-            <h1>Les acteurs du réemploi pour une commande publique circulaire</h1>
-            <button type="button" class="info-btn" id="help_toggle" aria-expanded="false" aria-controls="help" title="Aide et notice d'utilisation">i<span class="sr-only"> Afficher l'aide</span></button>
+    <header class="sidebar-top">
+      <div id="sidebar-buyers" class="sidebar-buyers">
+        <div class="brand">
+          <!-- Logo : remplacer ce SVG par le logo officiel (ex. <img src="logo.svg" alt="…">) -->
+          <svg class="logo" viewBox="0 0 32 32" role="img" aria-label="Logo réemploi" focusable="false">
+            <circle cx="16" cy="16" r="15" fill="var(--accent)"/>
+            <path d="M16 7l3.4 5.9h-2.2v4.1h-2.4v-4.1h-2.2L16 7zm-7 9.2l2 3.4 1.8-3.4h-1.1l1.6-2.8-2.1-1.2-2.4 4.2-0.9-0.5 1.1 0.3zm14 0l-1.1-0.3 1.1 0.5-2.4-4.2-2.1 1.2 1.6 2.8h-1.1l1.8 3.4 2.2-3.4z" fill="#fff"/>
+          </svg>
+          <div class="brand-text">
+            <div class="brand-top">
+              <h1>Les acteurs du réemploi pour une commande publique circulaire</h1>
+              <button type="button" class="info-btn" id="help_toggle" aria-expanded="false" aria-controls="help" title="Aide et notice d'utilisation">i<span class="sr-only"> Afficher l'aide</span></button>
+            </div>
+            <p class="fr-text--sm">Pour les acheteurs publics — SPASER / art. 58 loi AGEC</p>
           </div>
-          <p>Pour les acheteurs publics — SPASER / art. 58 loi AGEC</p>
         </div>
       </div>
-      <!-- Bouton de référencement : renvoie vers le questionnaire de présentation des structures. -->
-      <a id="cta" class="cta" href="#" target="_blank" rel="noopener noreferrer">Vous êtes un acteur du réemploi ? Se référencer <span class="sr-only">(nouvel onglet)</span></a>
+      <div id="sidebar-actors" class="sidebar-actors fr-background-alt--grey">
+        <p class="actors-title fr-text--sm fr-mb-1w"><strong>Vous êtes un acteur du réemploi ?</strong></p>
+        <a id="cta" class="fr-btn fr-btn--secondary fr-btn--sm" href="#" target="_blank" rel="noopener noreferrer">Se référencer <span class="sr-only">(nouvel onglet)</span></a>
+      </div>
     </header>
     <div id="help" role="region" aria-labelledby="help-title" aria-hidden="true">
       <h2 id="help-title" tabindex="-1">Notice d'utilisation</h2>
@@ -127,33 +121,53 @@
       <p>Jeu de données en cours de fiabilisation (POC). Pour un export de la table complète, utilisez aussi les fonctions natives de Grist.</p>
     </div>
     <div class="scroll">
-      <details open>
-        <summary>Filtres</summary>
+      <details open class="fr-mb-2w">
+        <summary class="fr-h6">Filtres</summary>
         <div class="filters">
-          <div class="grid2">
-            <div class="field"><label for="f_nom">Nom</label>
-              <input id="f_nom" type="search" placeholder="Nom de la structure…" autocomplete="off" /></div>
-            <div class="field"><label for="f_siret">SIRET</label>
-              <input id="f_siret" type="search" inputmode="numeric" placeholder="14 chiffres…" autocomplete="off" /></div>
-            <div class="field"><label for="f_cat">Catégorie de produit</label><select id="f_cat"></select></div>
-            <div class="field"><label for="f_reg">Région</label><select id="f_reg"></select></div>
-            <div class="field full"><label for="f_pos">Position dans la chaîne du réemploi</label><select id="f_pos"></select></div>
-            <div class="field"><label for="f_act">Activité</label><select id="f_act"></select></div>
-            <div class="field"><label for="f_stat">Statut</label><select id="f_stat"></select></div>
-            <div class="field full"><label for="f_zone">Zone d'intervention</label><select id="f_zone"></select></div>
+          <div class="fr-input-group fr-mb-2w">
+            <label class="fr-label" for="f_nom">Nom</label>
+            <input class="fr-input" id="f_nom" type="search" placeholder="Nom de la structure…" autocomplete="off" />
+          </div>
+          <div class="fr-input-group fr-mb-2w">
+            <label class="fr-label" for="f_siret">SIRET</label>
+            <input class="fr-input" id="f_siret" type="search" inputmode="numeric" placeholder="14 chiffres…" autocomplete="off" />
+          </div>
+          <div class="fr-select-group fr-mb-2w">
+            <label class="fr-label" for="f_cat">Catégorie de produit</label>
+            <select class="fr-select" id="f_cat"></select>
+          </div>
+          <div class="fr-select-group fr-mb-2w">
+            <label class="fr-label" for="f_reg">Région</label>
+            <select class="fr-select" id="f_reg"></select>
+          </div>
+          <div class="fr-select-group fr-mb-2w">
+            <label class="fr-label" for="f_pos">Position dans la chaîne du réemploi</label>
+            <select class="fr-select" id="f_pos"></select>
+          </div>
+          <div class="fr-select-group fr-mb-2w">
+            <label class="fr-label" for="f_act">Activité</label>
+            <select class="fr-select" id="f_act"></select>
+          </div>
+          <fieldset id="f_stat" class="fr-fieldset fr-mb-2w">
+            <legend class="fr-fieldset__legend fr-text--regular fr-fieldset__legend--regular">Statut</legend>
+            <div class="fr-fieldset__content" id="f_stat_checks"></div>
+          </fieldset>
+          <div class="fr-select-group fr-mb-2w">
+            <label class="fr-label" for="f_zone">Zone d'intervention</label>
+            <select class="fr-select" id="f_zone"></select>
           </div>
         </div>
       </details>
       <details open>
-        <summary>Liste des acteurs (<span id="count2">0</span>)</summary>
-        <ul id="list" tabindex="-1"></ul>
+        <summary class="fr-h6">Liste des acteurs (<span id="count2">0</span>)</summary>
+        <ul id="list" class="fr-raw-list" tabindex="-1"></ul>
       </details>
     </div>
     <div class="bar">
       <span aria-live="polite"><b id="count">0</b> structure(s)</span>
       <div class="bar-actions">
-        <button type="button" class="linkish" id="export" disabled>Exporter la recherche (Excel)</button>
-        <button type="button" class="linkish" id="reset">Réinitialiser</button>
+        <button type="button" class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm" id="export" disabled>Exporter la recherche (Excel)</button>
+        <button type="button" class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm" id="reset">Réinitialiser</button>
       </div>
     </div>
   </aside>
@@ -176,7 +190,7 @@ const COLS = {
   site:"Site_internet", presentation:"Presentation", certs:"Certifications",
   lat:"Latitude", lng:"Longitude"
 };
-const MULTI = ["cat","act","certs"];
+const MULTI = ["cat","act","certs","statut"];
 
 const POS_MAP = {
   "Je collecte": "Collecte de biens en fin d'usage",
@@ -270,6 +284,8 @@ function norm(rec, idx){
     const v = val(rec, COLS[k]);
     o[k] = MULTI.includes(k) ? asList(v) : scalar(v);
   }
+  o.statutAtoms = Array.isArray(o.statut) ? o.statut.slice() : asList(o.statut);
+  o.statut = o.statutAtoms.join("; ");
   o.lat = parseFloat(o.lat); o.lng = parseFloat(o.lng);
   o.reg = depToReg(o.dep);
   o.pos = POS_MAP[o.pos] || o.pos;
@@ -283,23 +299,30 @@ function fillSelect(id, label, values){
   sel.innerHTML = `<option value="">— ${label} —</option>` + values.map(v=>`<option>${escapeHtml(v)}</option>`).join("");
   if (values.includes(cur)) sel.value = cur;
 }
+function buildStatutChecks(values){
+  const box = document.getElementById("f_stat_checks");
+  const prev = new Set(
+    [...box.querySelectorAll('input[type="checkbox"]:checked')].map(i=>i.value)
+  );
+  box.innerHTML = values.map((v,i)=>{
+    const id = "f_stat_"+i;
+    const checked = prev.has(v) ? " checked" : "";
+    return `<div class="fr-checkbox-group">
+      <input type="checkbox" id="${id}" name="f_stat" value="${escapeHtml(v)}"${checked}>
+      <label class="fr-label" for="${id}">${escapeHtml(v)}</label>
+    </div>`;
+  }).join("");
+  box.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("change", apply);
+  });
+}
 function buildFilters(){
   fillSelect("f_cat","Toutes", uniq(DATA.flatMap(d=>d.cat)));
   fillSelect("f_reg","Toutes", uniq(DATA.map(d=>d.reg).filter(Boolean)));
   fillSelect("f_pos","Toutes", uniq(DATA.map(d=>d.pos).filter(Boolean)));
   fillSelect("f_act","Toutes", uniq(DATA.flatMap(d=>d.act)));
-  fillSelect("f_stat","Tous", uniq(DATA.map(d=>d.statut).filter(Boolean)));
+  buildStatutChecks(uniq(DATA.flatMap(d=>d.statutAtoms)));
   fillSelect("f_zone","Toutes", uniq(DATA.map(d=>d.zone).filter(Boolean)));
-}
-// Raccourci de filtre (chips) : un clic règle/efface le select associé.
-function buildQuick(containerId, selectId, values){
-  const c = document.getElementById(containerId); c.innerHTML="";
-  values.forEach(v=>{
-    const b=document.createElement("button"); b.type="button"; b.textContent=v; b.dataset.val=v;
-    b.setAttribute("aria-pressed","false");
-    b.onclick=()=>{ const sel=document.getElementById(selectId); sel.value=(sel.value===v)?"":v; apply(); };
-    c.appendChild(b);
-  });
 }
 function getFilters(){
   return {
@@ -307,7 +330,8 @@ function getFilters(){
     siret: document.getElementById("f_siret").value.replace(/\s/g,""),
     cat: document.getElementById("f_cat").value, pos: document.getElementById("f_pos").value,
     reg: document.getElementById("f_reg").value,
-    act: document.getElementById("f_act").value, stat: document.getElementById("f_stat").value,
+    act: document.getElementById("f_act").value,
+    stat: [...document.querySelectorAll('#f_stat_checks input[type="checkbox"]:checked')].map(i=>i.value),
     zone: document.getElementById("f_zone").value,
   };
 }
@@ -318,7 +342,7 @@ function match(d, f){
   if (f.pos && d.pos !== f.pos) return false;
   if (f.reg && d.reg !== f.reg) return false;
   if (f.act && !d.act.includes(f.act)) return false;
-  if (f.stat && d.statut !== f.stat) return false;
+  if (f.stat.length && !f.stat.some(s => d.statutAtoms.includes(s))) return false;
   if (f.zone && d.zone !== f.zone) return false;
   return true;
 }
@@ -375,10 +399,10 @@ function renderList(items){
     const cur = d._id===selId;
     return `
     <li>
-      <button type="button" class="item${cur?' sel':''}" data-id="${d._id}" aria-current="${cur?'true':'false'}">
+      <button type="button" class="fr-btn fr-btn--tertiary-no-outline item${cur?' sel':''}" data-id="${d._id}" aria-current="${cur?'true':'false'}">
         <span class="nm">${escapeHtml(d.nom)}</span>
         <span class="meta">${escapeHtml([d.ville, d.reg].filter(Boolean).join(" · "))}</span>
-        <span class="tag">${escapeHtml(d.statut)}</span>
+        <span class="tags">${(d.statutAtoms||[]).map(s=>`<span class="tag">${escapeHtml(s)}</span>`).join("")}</span>
       </button>
     </li>`;
   }).join("");
@@ -406,14 +430,6 @@ function focusMarker(d){
     map.setView([d.lat,d.lng], 12);
   }
 }
-function syncQuick(containerId, selectId){
-  const val=document.getElementById(selectId).value;
-  document.querySelectorAll(`#${containerId} button`).forEach(b=>{
-    const on = b.dataset.val===val;
-    b.classList.toggle("on", on);
-    b.setAttribute("aria-pressed", on ? "true" : "false");
-  });
-}
 function closeDetail(){
   const el=document.getElementById("detail");
   el.style.display="none";
@@ -429,7 +445,7 @@ function showDetail(d){
   const rc = (k,arr) => (arr&&arr.length) ? `<div class="row"><span class="k">${k}</span><span class="v">${chips(arr)}</span></div>` : "";
   el.innerHTML = `
     <button type="button" class="close" aria-label="Fermer la fiche">×</button>
-    <div class="badge">${escapeHtml(d.statut||"")}</div>
+    <div class="badge">${escapeHtml((d.statutAtoms||[]).join(" · ")||"")}</div>
     <h2 id="detail-title">${escapeHtml(d.nom||"")}</h2>
     <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">${escapeHtml(d.presentation||"")}</p>
     ${site}
@@ -448,12 +464,13 @@ function showDetail(d){
   el.querySelector(".close").focus();
 }
 
-const FILTER_IDS = ["f_nom","f_siret","f_cat","f_pos","f_reg","f_act","f_stat","f_zone"];
+const FILTER_IDS = ["f_nom","f_siret","f_cat","f_pos","f_reg","f_act","f_zone"];
 FILTER_IDS.forEach(id=>{
   document.getElementById(id).addEventListener("input",apply);
 });
 document.getElementById("reset").onclick=()=>{
   FILTER_IDS.forEach(id=>document.getElementById(id).value="");
+  document.querySelectorAll('#f_stat_checks input[type="checkbox"]').forEach(i=>{ i.checked=false; });
   closeDetail(); selId=null;
   apply();
 };
@@ -568,5 +585,7 @@ const embedded = window.self !== window.top;
 if (embedded && typeof grist !== "undefined" && grist.ready) bootGrist();
 else bootCsv();
 </script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.0/dist/dsfr/dsfr.module.min.js"></script>
+<script nomodule src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.0/dist/dsfr/dsfr.nomodule.min.js"></script>
 </body>
 </html>
