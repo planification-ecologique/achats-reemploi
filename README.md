@@ -6,35 +6,37 @@ Ce dépôt contient les deux livrables du POC :
 
 | Fichier | Rôle |
 |---|---|
-| `acteurs_reemploi_poc.csv` | Jeu de données (39 structures réelles SPARE, France) prêt à importer dans Grist |
+| `acteurs_reemploi_poc.csv` | Jeu de données (76 structures, France) prêt à importer dans Grist |
 | `widget_carto.html` | Widget carte custom Grist (Leaflet) avec filtres, liste et fiche structure |
+| `referencement/referencement_09_16_2026.csv` | Demandes de référencement + colonne `Statut_validation` (source de vérité moderation) |
 
-## Contenu du jeu de données (39 structures)
+## Contenu du jeu de données (76 structures)
 
-Le jeu de données est **circonscrit à la France** (métropole + DROM-COM) et aux **produits visés par l'article 58 de la loi AGEC**. Il ne contient que des **données réelles vérifiées** :
+Le jeu de données est **circonscrit à la France** (métropole + DROM-COM). Il cumule les structures SPARE initiales et les lignes **`Statut_validation = Validé`** du référencement du 16/09/2026 (doublons SIRET : fiche référencement prioritaire) :
 
 | Source | Lignes | Nature |
 |---|---|---|
-| `SPARE — vérifié 12/03/2026` | 39 | **Données réelles** (SIRET, adresses), matériel informatique / EEE ciblés achats publics |
+| `SPARE — vérifié 12/03/2026` | 37 | Structures initiales POC (conservées) |
+| `Référencement — validé 16/09/2026` | 39 | Fiches renseignées par les structures, validées manuellement (hors contact e-mail) |
 
-> La colonne **`Source`** est conservée pour la traçabilité interne (mais n'est plus exposée comme filtre dans le widget).
+> La colonne **`Source`** est conservée pour la traçabilité interne (mais n'est plus exposée comme filtre dans le widget). Les 12 demandes non validées restent dans le fichier de référencement (commentaires / demandes à envoyer).
 
 ### Évolution depuis la V1 (retours DAE)
 
 - **Domaine « Réemploi d'emballages » retiré** (503 structures, internationales, hors périmètre art. 58). Il pourra être réintroduit *dans un second temps* pour élargir à des produits non visés par AGEC.
 - **Périmètre France uniquement** (DROM-COM inclus), cohérent avec la démarche du réemploi.
-- **Lignes de démo (champs synthétiques) retirées** : seules les 39 structures réelles vérifiées SPARE sont conservées.
+- **Référencements validés ajoutés** (16/09/2026) depuis `referencement_09_16_2026.csv` **sans supprimer** les lignes SPARE existantes (2 doublons SIRET mis à jour : Keeep, RECYCLEA).
 - **Colonnes hors PRD supprimées** (issues de la carto emballages) : `Pays`, `Region_source`, `Type_acteur`, `Secteur`, `Offre`, `Type_emballage`, `Materiaux`, `Cible_client`.
-- **`Domaine` recalculé en domaine d'activité multi-tag** (`Informatique`, `Mobilier`, `Électroménager`) dérivé des catégories de produits ; une structure sur plusieurs domaines porte plusieurs tags.
+- **`Domaine` dérivé des catégories de produits** (multi-tag `;`) : `Informatique`, `Mobilier`, `Électroménager`, plus domaines étendus présents dans le référencement (`Automobile`, `Textile`, `Sport & loisirs`, `Emballages`, `Équipements techniques`).
 - **`Source` conservée pour la traçabilité interne** mais **n'est plus exposée comme filtre** dans le widget.
 
 ## ⚠️ Nature des données
 
 Jeu **illustratif** pour le POC, à fiabiliser avant tout usage officiel :
 
-- **SIRET** : **réels** pour les 39 lignes SPARE. À recouper avec SIRENE avant usage officiel.
-- **Coordonnées** : géocodées automatiquement (geonamescache + table d'appoint). À vérifier sur la Base Adresse Nationale.
-- Le fichier source réel du POC mobilier reste celui transmis par **SPARE**.
+- **SIRET** : SPARE + référencement (1 SIREN à 9 chiffres : ASSO ERA). À recouper avec SIRENE avant usage officiel.
+- **Coordonnées** : SPARE (géocodage initial) ; nouvelles fiches via la **Base Adresse Nationale**. À recontrôler au cas par cas.
+- **Contact e-mail** du référencement **non repris** dans `acteurs_reemploi_poc.csv` (hors affichage carto).
 
 ## Schéma des données
 
@@ -44,10 +46,10 @@ Colonnes alignées sur le §7.1 du PRD :
 |---|---|---|
 | `Nom_structure` | Texte | — |
 | `Statut_structure` | Choix | Secteur de l'insertion / de l'ESS / du handicap / Entreprise conventionnelle |
-| `Domaine` | Liste de choix | Informatique / Mobilier / Électroménager (multi-tag, séparés par `;`) |
+| `Domaine` | Liste de choix | Informatique / Mobilier / Électroménager / Automobile / Textile / … (multi-tag, séparés par `;`) |
 | `SIRET` | Texte | 14 chiffres |
 | `Categorie_produits` | Liste de choix | catégories art. 58 (séparées par `;`) |
-| `Activite_structure` | Liste de choix | Réparation / Reconditionnement / Nettoyage ou Lavage / Upcycling / Point de collecte / Distribution (`;`) |
+| `Activite_structure` | Liste de choix | Réparation / Reconditionnement / Nettoyage ou Lavage / Upcycling / Collecte / Distribution (`;`) |
 | `Position_chaine` | Choix | Je collecte / Je répare / Je vends / Je collecte et je vends |
 | `Adresse`, `Ville` | Texte | — |
 | `Departement` | Choix | `NN - Nom` |
@@ -56,7 +58,7 @@ Colonnes alignées sur le §7.1 du PRD :
 | `Presentation` | Texte | présentation succincte |
 | `Certifications` | Liste de choix | reconnaissances : labels, certifications, distinctions (`;`) |
 | `Latitude`, `Longitude` | Numérique | WGS84 |
-| `Source` | Choix | SPARE (vérifié) / Démo (à vérifier) — *traçabilité interne, non affichée comme filtre* |
+| `Source` | Choix | `SPARE — vérifié 12/03/2026` / `Référencement — validé 16/09/2026` — *traçabilité interne, non affichée comme filtre* |
 
 > Les champs multi-valeurs utilisent `;` comme séparateur. À l'import, typez ces colonnes en **Liste de choix** dans Grist (Grist découpe automatiquement).
 
