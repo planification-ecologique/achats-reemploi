@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="light only" />
-<title>Les acteurs du réemploi pour une commande publique circulaire</title>
+<title>Réemploi pour la commande publique</title>
 <script>
   /* Lock DSFR light — no OS dark / localStorage bleed in Grist iframe */
   (function () {
@@ -164,7 +164,7 @@
               <span class="fr-badge fr-badge--info fr-badge--sm">Projet DAE</span>
               <span class="fr-badge fr-badge--new fr-badge--sm">Bêta</span>
             </p>
-            <h1>Les acteurs du réemploi pour une commande publique circulaire</h1>
+            <h1>Réemploi pour la commande publique</h1>
             <p class="fr-hint-text">Cartographie à destination des acheteurs publics dans le cadre du SPASER de l'État et de l'article 58 de la loi AGEC</p>
           </div>
           <button type="button" class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm" id="help_toggle" aria-expanded="false" aria-controls="help" title="Infos et notice d'utilisation">Infos</button>
@@ -451,7 +451,7 @@ function apply(){
     if (!m){
       m = L.marker([d.lat,d.lng], {title: d.nom, alt: d.nom});
       m.bindTooltip(d.nom);
-      m.on("click",()=>{ selId=d._id; showDetail(d); highlightList(); });
+      m.on("click",()=>{ selId=d._id; showDetail(d); highlightList(); syncGristCursor(d); });
       markers[d._id]=m;
     }
     cluster.addLayer(m);
@@ -465,6 +465,18 @@ function apply(){
   renderList(shown);
   frameTo(bounds);
   fixSize();
+  syncGristFilter(shown);
+}
+function syncGristFilter(shown){
+  if (typeof grist === "undefined" || !grist.setSelectedRows) return;
+  const ids = shown.map(d=>d._id).filter(id=>typeof id==="number");
+  // null = no filter link ; [] = show nothing ; ids = filter linked table
+  try { grist.setSelectedRows(ids.length ? ids : []); } catch (e) {}
+}
+function syncGristCursor(d){
+  if (typeof grist === "undefined" || !grist.setCursorPos) return;
+  if (typeof d._id !== "number") return;
+  try { grist.setCursorPos({ rowId: d._id }); } catch (e) {}
 }
 // Cadrage robuste : fitBounds si resserré, sinon barycentre (insensible aux outliers
 // comme La Réunion / Canada qui faisaient centrer la carte près de (0,0)).
@@ -503,7 +515,7 @@ function renderList(items){
     node.onclick=()=>{
       const d = DATA.find(x=>String(x._id)===node.dataset.id);
       if (!d) return;
-      selId=d._id; showDetail(d); highlightList(); focusMarker(d);
+      selId=d._id; showDetail(d); highlightList(); focusMarker(d); syncGristCursor(d);
     };
   });
 }
@@ -657,7 +669,10 @@ function ingest(records){
 }
 let gristGotData=false;
 function bootGrist(){
-  grist.ready({requiredAccess:"read table"});
+  grist.ready({
+    requiredAccess:"read table",
+    allowSelectBy: true // carto = source de lien → filtre le tableau lié
+  });
   grist.onRecords(recs=>{ gristGotData=true; ingest(recs); });
   setTimeout(()=>{ if(!gristGotData) setEmpty("waiting"); }, 2500);
 }
