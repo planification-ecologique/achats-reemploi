@@ -1,9 +1,19 @@
 <!DOCTYPE html>
-<html lang="fr" data-fr-scheme="light">
+<html lang="fr" data-fr-scheme="light" data-fr-theme="light">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light only" />
 <title>Les acteurs du réemploi pour une commande publique circulaire</title>
+<script>
+  /* Lock DSFR light — no OS dark / localStorage bleed in Grist iframe */
+  (function () {
+    var root = document.documentElement;
+    root.setAttribute("data-fr-scheme", "light");
+    root.setAttribute("data-fr-theme", "light");
+    try { localStorage.setItem("scheme", "light"); } catch (e) {}
+  })();
+</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.0/dist/dsfr/dsfr.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.0/dist/utility/utility.min.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -15,6 +25,7 @@
     --accent:#1a6b44; --accent-soft:#e3f3ea; --chip:#eef2f6; --focus:#0b57d0;
   }
   *{box-sizing:border-box}
+  html{color-scheme:light only}
   html,body{margin:0;height:100%;width:100%}
   body{margin:0;height:100%;width:100%;color:var(--ink);background:var(--bg)}
   .skip-link{position:absolute;left:-9999px;top:auto;z-index:10000;padding:8px 12px;background:#fff;color:var(--ink);border:2px solid var(--focus);border-radius:6px;font-size:14px;font-weight:600;text-decoration:none}
@@ -24,43 +35,102 @@
   #sidebar{width:400px;flex:0 0 400px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--panel);min-height:0}
   .sidebar-top{padding:0;background:#fff}
   .sidebar-buyers{padding:12px 16px;border-bottom:1px solid var(--border)}
-  .sidebar-actors{padding:12px 16px;border-bottom:1px solid var(--border)}
+  .sidebar-encart{padding:10px 16px;border-bottom:1px solid var(--border)}
+  .sidebar-actors{padding:10px 16px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
   #cta{display:inline-flex;width:auto;text-decoration:none}
-  .brand{display:flex;align-items:flex-start;gap:9px;margin-bottom:4px}
-  .brand .logo{flex:0 0 30px;width:30px;height:30px;margin-top:1px}
-  .brand-text{flex:1;min-width:0}
   .brand-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-  #sidebar header h1{font-size:14px;line-height:1.25;margin:0}
-  #sidebar header p{font-size:11px;color:var(--muted);margin:4px 0 0}
-  .info-btn{flex:0 0 auto;width:28px;height:28px;border:1px solid var(--border);border-radius:50%;background:#fff;color:var(--accent);font-size:13px;font-weight:700;font-style:italic;font-family:Georgia,serif;cursor:pointer;line-height:1;padding:0}
-  .info-btn[aria-expanded="true"]{background:var(--accent-soft);border-color:var(--accent)}
+  #sidebar header h1{font-size:.875rem;line-height:1.3;margin:0}
+  #sidebar header .fr-hint-text{margin:.35rem 0 0}
   .scroll{overflow:auto;flex:1;min-height:0}
-  #help{display:none;padding:12px 16px 14px;border-bottom:1px solid var(--border);background:#fff;font-size:12.5px;line-height:1.45;color:var(--ink)}
-  #help[aria-hidden="false"]{display:block}
-  #help h2{font-size:13px;margin:0 0 8px}
-  #help ul{margin:0 0 8px;padding-left:1.2em}
-  #help li{margin-bottom:4px}
-  #help p{margin:0 0 8px;color:var(--muted)}
-  #help p:last-child{margin-bottom:0}
+  /* Infos modal (centered over whole widget) */
+  #help{
+    display:none;position:fixed;inset:0;z-index:10000;
+    align-items:center;justify-content:center;padding:1rem;
+  }
+  #help[aria-hidden="false"]{display:flex}
+  #help .help-backdrop{
+    position:absolute;inset:0;background:rgba(22,22,22,.64);border:0;padding:0;cursor:pointer;
+  }
+  #help .help-dialog{
+    position:relative;z-index:1;width:min(560px,100%);max-height:min(80vh,640px);
+    overflow:auto;background:#fff;padding:1.5rem 1.5rem 1.25rem;
+    box-shadow:0 8px 32px rgba(22,22,22,.28);
+  }
+  #help .help-dialog .fr-btn--close{margin-left:auto;display:flex}
   details{border-bottom:1px solid var(--border)}
-  details>summary{cursor:pointer;margin:0;padding:10px 16px}
-  .filters{padding:6px 16px 12px}
+  details>summary{cursor:pointer;margin:0;padding:8px 16px;font-size:.875rem;font-weight:700}
+  details>summary.fr-h6{font-size:.875rem;line-height:1.4;margin:0;padding:8px 16px}
+  .filters{padding:4px 12px 10px}
+  /* Compact DSFR form density in sidebar */
+  #sidebar .filters .fr-input-group,
+  #sidebar .filters .fr-select-group{margin-bottom:.5rem}
+  #sidebar .filters .fr-label{font-size:.75rem;margin-bottom:.15rem}
+  #sidebar .filters .fr-input,
+  #sidebar .filters .fr-select{padding:.35rem .5rem;font-size:.8125rem;min-height:2rem}
+  #sidebar .filters .filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+  #sidebar .filters .filter-grid .full{grid-column:1/-1}
+  #f_stat{margin:0 0 .5rem;padding:0}
+  #f_stat .fr-fieldset__legend{font-size:.75rem;margin-bottom:.35rem;padding:0;width:100%}
+  #f_stat .fr-fieldset__content{
+    margin:0 !important;padding:0 !important;
+    display:flex !important;flex-direction:column !important;align-items:stretch !important;
+    gap:.35rem !important;width:100%;
+  }
+  #f_stat .fr-checkbox-group{
+    margin:0 !important;width:100%;display:block !important;
+    position:relative;min-height:1.5rem;
+  }
+  #f_stat .fr-checkbox-group .fr-label{
+    font-size:.75rem;display:block;width:100%;
+    white-space:normal;line-height:1.35;
+  }
   /* List */
   #list{list-style:none;margin:0;padding:6px 10px 14px}
   #list li+li{margin-top:.5rem}
   .item{width:100%;text-align:left;flex-direction:column;align-items:flex-start}
-  .item.sel,.item[aria-current="true"]{box-shadow:inset 0 0 0 2px var(--accent)}
+  .item.sel,.item[aria-current="true"]{box-shadow:inset 0 0 0 2px var(--blue-france-sun-113-625, var(--accent))}
   .item .nm{display:block;font-size:13px;font-weight:600;margin-bottom:2px}
   .item .meta{display:block;font-size:11px;color:var(--muted)}
   .item .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
-  .item .tag{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600}
-  #f_stat{margin-left:0;margin-right:0}
+  .item .tag{display:inline-block;background:var(--background-contrast-blue-france, var(--accent-soft));color:var(--text-action-high-blue-france, var(--accent));border-radius:5px;padding:1px 6px;font-size:10px;font-weight:600}
   .bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:9px 16px;border-top:1px solid var(--border);background:#fff;font-size:12px}
   .bar b{color:var(--accent)}
   .bar-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
   /* Map */
   #mapwrap{flex:1;position:relative;min-width:0}
   #map{position:absolute;inset:0}
+  /* Isolate Leaflet controls from DSFR link underline / hover tints */
+  .leaflet-container a,
+  .leaflet-container a[href]{
+    background-image:none !important;
+    --underline-img:none;
+    --underline-idle-width:0;
+    --underline-hover-width:0;
+    --underline-max-width:0;
+    text-decoration:none !important;
+  }
+  .leaflet-container a:before,
+  .leaflet-container a:after{
+    content:none !important;
+    display:none !important;
+    background:none !important;
+  }
+  .leaflet-bar a,
+  .leaflet-bar a:hover,
+  .leaflet-bar a:focus,
+  .leaflet-bar a:active{
+    background-color:#fff !important;
+    color:#333 !important;
+    background-image:none !important;
+    width:30px;
+    height:30px;
+    line-height:30px;
+    display:block;
+    text-align:center;
+    text-decoration:none !important;
+    box-shadow:none;
+  }
+  .leaflet-bar a:hover{background-color:#f4f4f4 !important}
   /* Detail card */
   #detail{position:absolute;top:12px;right:12px;width:330px;max-height:calc(100% - 24px);overflow:auto;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 30px rgba(20,40,60,.18);padding:16px;display:none;z-index:1000}
   #detail h2{font-size:15px;margin:0 24px 6px 0}
@@ -88,76 +158,66 @@
   <aside id="sidebar" aria-label="Filtres et liste des acteurs">
     <header class="sidebar-top">
       <div id="sidebar-buyers" class="sidebar-buyers">
-        <div class="brand">
-          <!-- Logo : remplacer ce SVG par le logo officiel (ex. <img src="logo.svg" alt="…">) -->
-          <svg class="logo" viewBox="0 0 32 32" role="img" aria-label="Logo réemploi" focusable="false">
-            <circle cx="16" cy="16" r="15" fill="var(--accent)"/>
-            <path d="M16 7l3.4 5.9h-2.2v4.1h-2.4v-4.1h-2.2L16 7zm-7 9.2l2 3.4 1.8-3.4h-1.1l1.6-2.8-2.1-1.2-2.4 4.2-0.9-0.5 1.1 0.3zm14 0l-1.1-0.3 1.1 0.5-2.4-4.2-2.1 1.2 1.6 2.8h-1.1l1.8 3.4 2.2-3.4z" fill="#fff"/>
-          </svg>
-          <div class="brand-text">
-            <div class="brand-top">
-              <h1>Les acteurs du réemploi pour une commande publique circulaire</h1>
-              <button type="button" class="info-btn" id="help_toggle" aria-expanded="false" aria-controls="help" title="Aide et notice d'utilisation">i<span class="sr-only"> Afficher l'aide</span></button>
-            </div>
-            <p class="fr-text--sm">Pour les acheteurs publics — SPASER / art. 58 loi AGEC</p>
+        <div class="brand-top">
+          <div>
+            <p class="fr-mb-1v">
+              <span class="fr-badge fr-badge--info fr-badge--sm">Projet DAE</span>
+              <span class="fr-badge fr-badge--new fr-badge--sm">Bêta</span>
+            </p>
+            <h1>Les acteurs du réemploi pour une commande publique circulaire</h1>
+            <p class="fr-hint-text">Cartographie à destination des acheteurs publics dans le cadre du SPASER de l'État et de l'article 58 de la loi AGEC</p>
           </div>
+          <button type="button" class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm" id="help_toggle" aria-expanded="false" aria-controls="help" title="Infos et notice d'utilisation">Infos</button>
         </div>
       </div>
-      <div id="sidebar-actors" class="sidebar-actors fr-background-alt--grey">
-        <p class="actors-title fr-text--sm fr-mb-1w"><strong>Vous êtes un acteur du réemploi ?</strong></p>
-        <a id="cta" class="fr-btn fr-btn--secondary fr-btn--sm" href="#" target="_blank" rel="noopener noreferrer">Se référencer <span class="sr-only">(nouvel onglet)</span></a>
-      </div>
     </header>
-    <div id="help" role="region" aria-labelledby="help-title" aria-hidden="true">
-      <h2 id="help-title" tabindex="-1">Notice d'utilisation</h2>
-      <p>Cet outil aide les acheteurs publics à identifier des acteurs du réemploi susceptibles de répondre à leurs marchés (mesure SPASER / art.&nbsp;58 loi AGEC).</p>
-      <ul>
-        <li><strong>Périmètre</strong> : France (métropole et DROM-COM), produits visés par l'art.&nbsp;58 (informatique, mobilier, électroménager, etc.).</li>
-        <li><strong>Rechercher</strong> : filtrez par nom, SIRET, catégorie, région, activité, statut ou zone d'intervention. La liste et la carte se mettent à jour ensemble.</li>
-        <li><strong>Consulter</strong> : cliquez une structure dans la liste (parcours accessible) ou sur la carte pour ouvrir sa fiche.</li>
-        <li><strong>Exporter</strong> : téléchargez un fichier Excel/CSV des <em>seuls</em> résultats de votre recherche courante.</li>
-        <li><strong>Se référencer</strong> : les structures peuvent déposer une fiche via le bouton ci-dessus (modération avant publication).</li>
-      </ul>
-      <p>Jeu de données en cours de fiabilisation (POC). Pour un export de la table complète, utilisez aussi les fonctions natives de Grist.</p>
-    </div>
     <div class="scroll">
-      <details open class="fr-mb-2w">
+      <div id="sidebar-buyer-encart" class="sidebar-encart fr-background-alt--blue-france">
+        <p class="fr-text--sm fr-mb-0"><strong>Vous êtes un acheteur public ?</strong> Rechercher les acteurs du réemploi pour répondre à votre besoin.</p>
+      </div>
+      <details open>
         <summary class="fr-h6">Filtres</summary>
         <div class="filters">
-          <div class="fr-input-group fr-mb-2w">
-            <label class="fr-label" for="f_nom">Nom</label>
-            <input class="fr-input" id="f_nom" type="search" placeholder="Nom de la structure…" autocomplete="off" />
-          </div>
-          <div class="fr-input-group fr-mb-2w">
-            <label class="fr-label" for="f_siret">SIRET</label>
-            <input class="fr-input" id="f_siret" type="search" inputmode="numeric" placeholder="14 chiffres…" autocomplete="off" />
-          </div>
-          <div class="fr-select-group fr-mb-2w">
-            <label class="fr-label" for="f_cat">Catégorie de produit</label>
-            <select class="fr-select" id="f_cat"></select>
-          </div>
-          <div class="fr-select-group fr-mb-2w">
-            <label class="fr-label" for="f_reg">Région</label>
-            <select class="fr-select" id="f_reg"></select>
-          </div>
-          <div class="fr-select-group fr-mb-2w">
-            <label class="fr-label" for="f_pos">Position dans la chaîne du réemploi</label>
-            <select class="fr-select" id="f_pos"></select>
-          </div>
-          <div class="fr-select-group fr-mb-2w">
-            <label class="fr-label" for="f_act">Activité</label>
-            <select class="fr-select" id="f_act"></select>
-          </div>
-          <fieldset id="f_stat" class="fr-fieldset fr-mb-2w">
-            <legend class="fr-fieldset__legend fr-text--regular fr-fieldset__legend--regular">Statut</legend>
-            <div class="fr-fieldset__content" id="f_stat_checks"></div>
-          </fieldset>
-          <div class="fr-select-group fr-mb-2w">
-            <label class="fr-label" for="f_zone">Zone d'intervention</label>
-            <select class="fr-select" id="f_zone"></select>
+          <div class="filter-grid">
+            <div class="fr-input-group">
+              <label class="fr-label" for="f_nom">Nom</label>
+              <input class="fr-input" id="f_nom" type="search" placeholder="Structure…" autocomplete="off" />
+            </div>
+            <div class="fr-input-group">
+              <label class="fr-label" for="f_siret">SIRET</label>
+              <input class="fr-input" id="f_siret" type="search" inputmode="numeric" placeholder="14 chiffres…" autocomplete="off" />
+            </div>
+            <div class="fr-select-group">
+              <label class="fr-label" for="f_cat">Catégorie</label>
+              <select class="fr-select" id="f_cat"></select>
+            </div>
+            <div class="fr-select-group">
+              <label class="fr-label" for="f_reg">Région</label>
+              <select class="fr-select" id="f_reg"></select>
+            </div>
+            <div class="fr-select-group full">
+              <label class="fr-label" for="f_pos">Besoin de l'acheteur en réemploi</label>
+              <select class="fr-select" id="f_pos"></select>
+            </div>
+            <div class="fr-select-group">
+              <label class="fr-label" for="f_act">Activité de l'entreprise</label>
+              <select class="fr-select" id="f_act"></select>
+            </div>
+            <div class="fr-select-group">
+              <label class="fr-label" for="f_zone">Zone d'intervention</label>
+              <select class="fr-select" id="f_zone"></select>
+            </div>
+            <fieldset id="f_stat" class="fr-fieldset full">
+              <legend class="fr-fieldset__legend fr-fieldset__legend--regular">Statut</legend>
+              <div class="fr-fieldset__content" id="f_stat_checks"></div>
+            </fieldset>
           </div>
         </div>
       </details>
+      <div id="sidebar-actors" class="sidebar-actors fr-background-alt--grey">
+        <p class="fr-text--sm fr-mb-1v"><strong>Vous êtes un acteur du réemploi ?</strong></p>
+        <a id="cta" class="fr-btn fr-btn--secondary fr-btn--sm" href="#" target="_blank" rel="noopener noreferrer">Se référencer <span class="sr-only">(nouvel onglet)</span></a>
+      </div>
       <details open>
         <summary class="fr-h6">Liste des acteurs (<span id="count2">0</span>)</summary>
         <ul id="list" class="fr-raw-list" tabindex="-1"></ul>
@@ -175,6 +235,27 @@
     <div id="map"></div>
     <div id="detail" role="dialog" aria-modal="true" aria-labelledby="detail-title" aria-hidden="true" hidden></div>
   </main>
+</div>
+
+<div id="help" aria-hidden="true">
+  <button type="button" class="help-backdrop" data-help-close aria-label="Fermer la fenêtre d'infos"></button>
+  <div class="help-dialog fr-modal__body" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="fr-modal__header">
+      <button type="button" class="fr-btn--close fr-btn" data-help-close title="Fermer">Fermer</button>
+    </div>
+    <div class="fr-modal__content">
+      <h1 id="help-title" class="fr-modal__title" tabindex="-1">Notice d'utilisation</h1>
+      <p>Cet outil aide les acheteurs publics à identifier des acteurs du réemploi susceptibles de répondre à leurs marchés (mesure SPASER / art.&nbsp;58 loi AGEC). Projet porté par la Direction des Achats de l'État (DAE).</p>
+      <ul>
+        <li><strong>Périmètre</strong> : France (métropole et DROM-COM), produits visés par l'art.&nbsp;58 (informatique, mobilier, électroménager, etc.).</li>
+        <li><strong>Rechercher</strong> : filtrez par nom, SIRET, catégorie, région, activité, statut ou zone d'intervention. La liste et la carte se mettent à jour ensemble.</li>
+        <li><strong>Consulter</strong> : cliquez une structure dans la liste (parcours accessible) ou sur la carte pour ouvrir sa fiche.</li>
+        <li><strong>Exporter</strong> : téléchargez un fichier Excel/CSV des <em>seuls</em> résultats de votre recherche courante.</li>
+        <li><strong>Se référencer</strong> : les structures peuvent déposer une fiche via le bouton entre les filtres et la liste (modération avant publication).</li>
+      </ul>
+      <p>Jeu de données en cours de fiabilisation (POC). Pour un export de la table complète, utilisez aussi les fonctions natives de Grist.</p>
+    </div>
+  </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -293,10 +374,12 @@ function norm(rec, idx){
 }
 function uniq(values){ return [...new Set(values)].sort((a,b)=>String(a).localeCompare(String(b),"fr")); }
 function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+const REGIONS_DROM = ["Guadeloupe","Martinique","Guyane","La Réunion","Mayotte"];
+const ZONES_EXTRA = ["DROM COM"];
 function fillSelect(id, label, values){
   const sel = document.getElementById(id);
   const cur = sel.value;
-  sel.innerHTML = `<option value="">— ${label} —</option>` + values.map(v=>`<option>${escapeHtml(v)}</option>`).join("");
+  sel.innerHTML = `<option value="">— ${label} —</option>` + values.map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
   if (values.includes(cur)) sel.value = cur;
 }
 function buildStatutChecks(values){
@@ -318,11 +401,11 @@ function buildStatutChecks(values){
 }
 function buildFilters(){
   fillSelect("f_cat","Toutes", uniq(DATA.flatMap(d=>d.cat)));
-  fillSelect("f_reg","Toutes", uniq(DATA.map(d=>d.reg).filter(Boolean)));
-  fillSelect("f_pos","Toutes", uniq(DATA.map(d=>d.pos).filter(Boolean)));
+  fillSelect("f_reg","Toutes", uniq([...DATA.map(d=>d.reg).filter(Boolean), ...REGIONS_DROM]));
+  fillSelect("f_pos","Tous", uniq(DATA.map(d=>d.pos).filter(Boolean)));
   fillSelect("f_act","Toutes", uniq(DATA.flatMap(d=>d.act)));
   buildStatutChecks(uniq(DATA.flatMap(d=>d.statutAtoms)));
-  fillSelect("f_zone","Toutes", uniq(DATA.map(d=>d.zone).filter(Boolean)));
+  fillSelect("f_zone","Toutes", uniq([...DATA.map(d=>d.zone).filter(Boolean), ...ZONES_EXTRA]));
 }
 function getFilters(){
   return {
@@ -335,6 +418,16 @@ function getFilters(){
     zone: document.getElementById("f_zone").value,
   };
 }
+function matchZone(dZone, fZone){
+  if (!fZone) return true;
+  if (dZone === fZone) return true;
+  // « DROM COM » : toute zone mentionnant DROM/COM
+  if (fZone === "DROM COM"){
+    const z = String(dZone).toLowerCase();
+    return /\bdrom\b/.test(z) || z.includes("drom-com") || z.includes("drom com");
+  }
+  return false;
+}
 function match(d, f){
   if (f.nom && !String(d.nom).toLowerCase().includes(f.nom)) return false;
   if (f.siret && !String(d.siret).replace(/\s/g,"").includes(f.siret)) return false;
@@ -343,7 +436,7 @@ function match(d, f){
   if (f.reg && d.reg !== f.reg) return false;
   if (f.act && !d.act.includes(f.act)) return false;
   if (f.stat.length && !f.stat.some(s => d.statutAtoms.includes(s))) return false;
-  if (f.zone && d.zone !== f.zone) return false;
+  if (!matchZone(d.zone, f.zone)) return false;
   return true;
 }
 function apply(){
@@ -445,18 +538,18 @@ function showDetail(d){
   const rc = (k,arr) => (arr&&arr.length) ? `<div class="row"><span class="k">${k}</span><span class="v">${chips(arr)}</span></div>` : "";
   el.innerHTML = `
     <button type="button" class="close" aria-label="Fermer la fiche">×</button>
-    <div class="badge">${escapeHtml((d.statutAtoms||[]).join(" · ")||"")}</div>
+    <div class="badge chips">${(d.statutAtoms&&d.statutAtoms.length?d.statutAtoms:[]).map(s=>`<span>${escapeHtml(s)}</span>`).join("")||"—"}</div>
     <h2 id="detail-title">${escapeHtml(d.nom||"")}</h2>
     <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">${escapeHtml(d.presentation||"")}</p>
     ${site}
     ${r("SIRET", d.siret)}
     ${rc("Catégorie de produit", d.cat)}
-    ${rc("Activités", d.act)}
-    ${r("Position dans la chaîne du réemploi", d.pos)}
+    ${rc("Activité de l'entreprise", d.act)}
+    ${r("Besoin de l'acheteur en réemploi", d.pos)}
     ${r("Ville", d.ville)}
     ${r("Région", d.reg)}
     ${r("Zone d'intervention", d.zone)}
-    ${rc("Reconnaissances obtenues (labels, certifications, normes iso)", d.certs)}`;
+    ${rc("Reconnaissances obtenues (labels, certifications, normes ISO) déclarées par l'entreprise", d.certs)}`;
   el.querySelector(".close").onclick=closeDetail;
   el.removeAttribute("hidden");
   el.setAttribute("aria-hidden","false");
@@ -466,7 +559,9 @@ function showDetail(d){
 
 const FILTER_IDS = ["f_nom","f_siret","f_cat","f_pos","f_reg","f_act","f_zone"];
 FILTER_IDS.forEach(id=>{
-  document.getElementById(id).addEventListener("input",apply);
+  const el = document.getElementById(id);
+  el.addEventListener("input", apply);
+  el.addEventListener("change", apply);
 });
 document.getElementById("reset").onclick=()=>{
   FILTER_IDS.forEach(id=>document.getElementById(id).value="");
@@ -509,21 +604,27 @@ function setHelpOpen(open){
   const btn=document.getElementById("help_toggle");
   panel.setAttribute("aria-hidden", open ? "false" : "true");
   btn.setAttribute("aria-expanded", open ? "true" : "false");
+  document.documentElement.style.overflow = open ? "hidden" : "";
   if (open){
-    const t=panel.querySelector("#help-title");
-    if (t) t.focus();
+    const closeBtn=panel.querySelector("[data-help-close].fr-btn--close") || panel.querySelector("#help-title");
+    if (closeBtn) closeBtn.focus();
+  } else {
+    btn.focus();
   }
 }
 document.getElementById("help_toggle").onclick=()=>{
   const open = document.getElementById("help").getAttribute("aria-hidden")!=="false";
   setHelpOpen(open);
 };
+document.getElementById("help").addEventListener("click", e=>{
+  if (e.target.closest("[data-help-close]")) setHelpOpen(false);
+});
 
 document.addEventListener("keydown", e=>{
   if (e.key!=="Escape") return;
+  if (document.getElementById("help").getAttribute("aria-hidden")==="false"){ setHelpOpen(false); return; }
   const detail=document.getElementById("detail");
-  if (detail && detail.style.display==="block"){ closeDetail(); return; }
-  if (document.getElementById("help").getAttribute("aria-hidden")==="false") setHelpOpen(false);
+  if (detail && detail.style.display==="block"){ closeDetail(); }
 });
 
 // URL du questionnaire de référencement (« se manifester »).
