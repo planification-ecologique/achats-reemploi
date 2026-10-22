@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="light only" />
-<title>Réemploi pour la commande publique</title>
+<title>Cartographie des acteurs du réemploi pour une commande publique circulaire</title>
 <script>
   /* Lock DSFR light — no OS dark / localStorage bleed in Grist iframe */
   (function () {
@@ -36,7 +36,7 @@
   .sidebar-top{padding:0;background:#fff}
   .sidebar-buyers{padding:12px 16px;border-bottom:1px solid var(--border)}
   .sidebar-encart{padding:10px 16px;border-bottom:1px solid var(--border)}
-  .sidebar-actors{padding:10px 16px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .sidebar-actors{padding:10px 16px;border-bottom:1px solid var(--border)}
   #cta{display:inline-flex;width:auto;text-decoration:none}
   .brand-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
   #sidebar header h1{font-size:.875rem;line-height:1.3;margin:0 0 .35rem}
@@ -168,7 +168,7 @@
       <div id="sidebar-buyers" class="sidebar-buyers">
         <div class="brand-top">
           <div>
-            <h1>Réemploi pour la commande publique</h1>
+            <h1>Cartographie des acteurs du réemploi pour une commande publique circulaire</h1>
             <p class="fr-mb-1v">
               <span class="fr-badge fr-badge--info fr-badge--sm">Projet DAE</span>
               <span class="fr-badge fr-badge--new fr-badge--sm">Bêta</span>
@@ -180,6 +180,10 @@
       </div>
     </header>
     <div class="scroll">
+      <div id="sidebar-actors" class="sidebar-actors fr-background-alt--grey">
+        <p class="fr-text--sm fr-mb-1v"><strong>Vous êtes un acteur du réemploi ?</strong></p>
+        <a id="cta" class="fr-btn fr-btn--secondary fr-btn--sm" href="#" target="_blank" rel="noopener noreferrer">Se référencer <span class="sr-only">(nouvel onglet)</span></a>
+      </div>
       <div id="sidebar-buyer-encart" class="sidebar-encart fr-background-alt--blue-france">
         <p class="fr-text--sm fr-mb-0"><strong>Vous êtes un acheteur public ?</strong> Rechercher les acteurs du réemploi pour répondre à votre besoin.</p>
       </div>
@@ -222,10 +226,6 @@
           </div>
         </div>
       </details>
-      <div id="sidebar-actors" class="sidebar-actors fr-background-alt--grey">
-        <p class="fr-text--sm fr-mb-1v"><strong>Vous êtes un acteur du réemploi ?</strong></p>
-        <a id="cta" class="fr-btn fr-btn--secondary fr-btn--sm" href="#" target="_blank" rel="noopener noreferrer">Se référencer <span class="sr-only">(nouvel onglet)</span></a>
-      </div>
       <details open>
         <summary class="fr-h6">Liste des acteurs (<span id="count2">0</span>)</summary>
         <ul id="list" class="fr-raw-list" tabindex="-1"></ul>
@@ -252,16 +252,25 @@
       <button type="button" class="fr-btn--close fr-btn" data-help-close title="Fermer">Fermer</button>
     </div>
     <div class="fr-modal__content">
-      <h1 id="help-title" class="fr-modal__title" tabindex="-1">Notice d'utilisation</h1>
-      <p>Cet outil aide les acheteurs publics à identifier des acteurs du réemploi susceptibles de répondre à leurs marchés (mesure SPASER / art.&nbsp;58 loi AGEC). Projet porté par la Direction des Achats de l'État (DAE).</p>
+      <h1 id="help-title" class="fr-modal__title" tabindex="-1">Infos</h1>
+      <h2 class="fr-h6">Ambition de l'outil</h2>
+      <p>Cet outil permet aux acheteurs publics d'identifier, dans le cadre de leur sourçage, des acteurs du réemploi susceptibles de répondre à leurs marchés. Il s'agit ici d'une première version, qui pourra ainsi faire l'objet d'évolution.</p>
+      <p>Ces travaux s'inscrivent dans le cadre du Schéma de Promotion des Achats Publics Socialement et Écologiquement Responsables (SPASER) de l'État 2025-2027 et ont pour ambition de contribuer à l'atteinte des objectifs de l'article&nbsp;58 de la loi AGEC.</p>
+      <h2 class="fr-h6">Entreprises référencées</h2>
+      <p>À ce stade, les entreprises répondant aux critères ci-dessous peuvent être référencées au sein de cette cartographie&nbsp;:</p>
       <ul>
-        <li><strong>Périmètre</strong> : France (métropole et DROM-COM), produits visés par l'art.&nbsp;58 (informatique, mobilier, électroménager, etc.).</li>
-        <li><strong>Rechercher</strong> : filtrez par nom, SIRET, catégorie, région, activité, statut ou zone d'intervention. La liste et la carte se mettent à jour ensemble.</li>
-        <li><strong>Consulter</strong> : cliquez une structure dans la liste (parcours accessible) ou sur la carte pour ouvrir sa fiche.</li>
-        <li><strong>Exporter</strong> : téléchargez un fichier Excel/CSV des <em>seuls</em> résultats de votre recherche courante.</li>
-        <li><strong>Se référencer</strong> : les structures peuvent déposer une fiche via le bouton entre les filtres et la liste (modération avant publication).</li>
+        <li>Exerçant en France (hexagone ou DROM)&nbsp;;</li>
+        <li>Répondant ou prévoyant de répondre à des appels d'offre publics&nbsp;;</li>
+        <li>Proposant une offre à l'achat de produits issus du réemploi&nbsp;;</li>
+        <li>Proposant des produits issus du réemploi dans l'une ou plusieurs catégories suivantes&nbsp;: Textiles / Matériel informatique et téléphonie / Matériel de reprographie et d'impression / Consommables d'impression / Fournitures de bureau / Engins de transport et pièces détachées / Véhicules et pièces détachées / Mobilier et aménagement d'intérieur / Mobilier urbain / Équipements de collecte de déchets / Bocaux et flacons / Articles et équipements sportifs / Matériel d'entretien des espaces verts / Bâtiments modulaires et préfabriqués / Gros électroménager / Jeux et jouets.</li>
       </ul>
-      <p>Jeu de données en cours de fiabilisation (POC). Pour un export de la table complète, utilisez aussi les fonctions natives de Grist.</p>
+      <h2 class="fr-h6">Notice d'utilisation de l'outil</h2>
+      <ul>
+        <li><strong>Rechercher</strong>&nbsp;: filtrez par nom, SIRET, catégorie, région, activité, statut ou zone d'intervention. La liste et la carte se mettent à jour ensemble automatiquement.</li>
+        <li><strong>Consulter</strong>&nbsp;: cliquez sur une structure dans la liste ou sur la carte pour ouvrir sa fiche.</li>
+        <li><strong>Exporter</strong>&nbsp;: téléchargez un fichier Excel/CSV des seuls résultats de votre recherche courante.</li>
+        <li><strong>Se référencer</strong>&nbsp;: les structures peuvent déposer une demande de référencement via le bouton «&nbsp;Se référencer&nbsp;» (modération avant publication).</li>
+      </ul>
     </div>
   </div>
 </div>
@@ -286,6 +295,38 @@ const POS_MAP = {
   "Je vends": "Achat de biens",
   "Je collecte et je vends": "Collecte et achat de biens",
 };
+
+// Taxonomie statut (choix unique). Inclusive ⊆ ESS pour le filtre.
+const STATUT_OPTIONS = [
+  "Entreprise conventionnelle",
+  "Entreprise inclusive",
+  "Entreprise de l'ESS",
+];
+const STATUT_ALIAS = {
+  "entreprise conventionnelle": "Entreprise conventionnelle",
+  "entreprise inclusive": "Entreprise inclusive",
+  "entreprise de l'ess": "Entreprise de l'ESS",
+  "secteur de l'ess": "Entreprise de l'ESS",
+  "secteur de l'insertion": "Entreprise inclusive",
+  "secteur du handicap": "Entreprise inclusive",
+};
+function canonicalizeStatut(atoms){
+  const mapped = atoms.map(a => STATUT_ALIAS[deburr(a).trim()] || null).filter(Boolean);
+  // Priorité : inclusive > ESS > conventionnelle (une inclusive est une ESS)
+  if (mapped.includes("Entreprise inclusive")) return ["Entreprise inclusive"];
+  if (mapped.includes("Entreprise de l'ESS")) return ["Entreprise de l'ESS"];
+  if (mapped.includes("Entreprise conventionnelle")) return ["Entreprise conventionnelle"];
+  return [];
+}
+function matchStatut(dAtoms, selected){
+  if (!selected.length) return true;
+  return selected.some(s => {
+    if (s === "Entreprise de l'ESS"){
+      return dAtoms.includes("Entreprise de l'ESS") || dAtoms.includes("Entreprise inclusive");
+    }
+    return dAtoms.includes(s);
+  });
+}
 
 const DEP_TO_REG = {
   "01":"Auvergne-Rhône-Alpes","02":"Hauts-de-France","03":"Auvergne-Rhône-Alpes",
@@ -373,7 +414,8 @@ function norm(rec, idx){
     const v = val(rec, COLS[k]);
     o[k] = MULTI.includes(k) ? asList(v) : scalar(v);
   }
-  o.statutAtoms = Array.isArray(o.statut) ? o.statut.slice() : asList(o.statut);
+  const rawStatut = Array.isArray(o.statut) ? o.statut.slice() : asList(o.statut);
+  o.statutAtoms = canonicalizeStatut(rawStatut);
   o.statut = o.statutAtoms.join("; ");
   o.lat = parseFloat(o.lat); o.lng = parseFloat(o.lng);
   o.reg = depToReg(o.dep);
@@ -412,7 +454,7 @@ function buildFilters(){
   fillSelect("f_reg","Toutes", uniq([...DATA.map(d=>d.reg).filter(Boolean), ...REGIONS_DROM]));
   fillSelect("f_pos","Tous", uniq(DATA.map(d=>d.pos).filter(Boolean)));
   fillSelect("f_act","Toutes", uniq(DATA.flatMap(d=>d.act)));
-  buildStatutChecks(uniq(DATA.flatMap(d=>d.statutAtoms)));
+  buildStatutChecks(STATUT_OPTIONS);
   fillSelect("f_zone","Toutes", uniq([...DATA.map(d=>d.zone).filter(Boolean), ...ZONES_EXTRA]));
 }
 function getFilters(){
@@ -443,7 +485,7 @@ function match(d, f){
   if (f.pos && d.pos !== f.pos) return false;
   if (f.reg && d.reg !== f.reg) return false;
   if (f.act && !d.act.includes(f.act)) return false;
-  if (f.stat.length && !f.stat.some(s => d.statutAtoms.includes(s))) return false;
+  if (!matchStatut(d.statutAtoms, f.stat)) return false;
   if (!matchZone(d.zone, f.zone)) return false;
   return true;
 }
