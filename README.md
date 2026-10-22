@@ -45,7 +45,7 @@ Colonnes alignées sur le §7.1 du PRD :
 | Colonne | Type Grist conseillé | Valeurs |
 |---|---|---|
 | `Nom_structure` | Texte | — |
-| `Statut_structure` | Choix | Secteur de l'insertion / de l'ESS / du handicap / Entreprise conventionnelle |
+| `Statut_structure` | Choix (unique) | `Entreprise conventionnelle` / `Entreprise inclusive` / `Entreprise de l'ESS` — filtre ESS = ESS **+** inclusives |
 | `Domaine` | Liste de choix | Informatique / Mobilier / Électroménager / Automobile / Textile / … (multi-tag, séparés par `;`) |
 | `SIRET` | Texte | 14 chiffres |
 | `Categorie_produits` | Liste de choix | catégories art. 58 (séparées par `;`) |
@@ -127,7 +127,13 @@ Le bouton « Se référencer » renvoie vers un **formulaire Grist**, construit 
 - La table `Referencement` porte une colonne `Statut_validation` (`À vérifier` / `Validé` / `Rejeté`, *non exposée dans le formulaire*).
 - Un agent vérifie la fiche (SIRET via SIRENE, périmètre art. 58, doublons), géocode (Lat/Long) puis recopie les lignes `Validé` vers la table `Acteurs` (manuellement, ou via une formule/automatisation Grist).
 
-**Champs du formulaire** (alignés sur la fiche de présentation) : `Nom_structure`, `SIRET`, `Statut_structure`, `Domaine`, `Categorie_produits`, `Activite_structure`, `Position_chaine`, `Adresse`, `Ville`, `Departement`, `Zone_intervention`, `Site_internet`, `Presentation`, `Certifications`, plus un bloc contact (`Contact_nom`, `Contact_email`, `Contact_telephone`). Les têtes de réseau peuvent diffuser ce lien directement aux structures.
+**Champs du formulaire** (alignés sur la fiche de présentation) : `Nom_structure`, `SIRET`, `Statut_structure` (**choix unique** : conventionnelle / inclusive / ESS), `Domaine`, `Categorie_produits`, `Activite_structure`, `Position_chaine`, `Adresse`, `Ville`, `Departement`, `Zone_intervention`, `Site_internet`, `Presentation`, `Certifications`, plus un bloc contact (`Contact_nom`, `Contact_email`, `Contact_telephone`). Les têtes de réseau peuvent diffuser ce lien directement aux structures.
+
+**Éditer le formulaire / descriptif (accès perdu)** : dans Grist, ouvrir le document → table `Referencement` → widget Form → icône engrenage du widget (pas l’URL publique). L’URL publique (`/forms/…`) est en lecture seule pour les répondants. Il faut un compte avec droit d’édition du document (owner/éditeur) dans l’orga `planification-ecologique`. Demander à un admin Grist de ré-inviter ou de partager le document en édition.
+
+**Descriptif suggéré en tête de formulaire** (critères de référencement) :
+
+> Peuvent se référencer les structures qui : (1) exercent en France (hexagone ou DROM) ; (2) répondent ou prévoient de répondre à des appels d’offre publics ; (3) proposent une offre à l’achat de produits issus du réemploi ; (4) proposent des produits issus du réemploi dans l’une des catégories listées (textiles, informatique/téléphonie, reprographie, consommables d’impression, fournitures de bureau, engins/véhicules et pièces, mobilier intérieur/urbain, équipements de collecte, bocaux/flacons, sport, espaces verts, bâtiments modulaires, gros électroménager, jeux et jouets).
 
 ## Vues natives Grist (complément, sans code)
 
