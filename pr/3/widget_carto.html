@@ -69,20 +69,22 @@
   #sidebar .filters .fr-select{padding:.35rem .5rem;font-size:.8125rem;min-height:2rem}
   #sidebar .filters .filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
   #sidebar .filters .filter-grid .full{grid-column:1/-1}
-  #f_stat{margin:0 0 .5rem;padding:0}
+  #f_stat{margin:0 0 .5rem !important;padding:0 !important;width:100%}
   #f_stat .fr-fieldset__legend{font-size:.75rem;margin-bottom:.35rem;padding:0;width:100%}
   #f_stat .fr-fieldset__content{
     margin:0 !important;padding:0 !important;
-    display:flex !important;flex-direction:column !important;align-items:stretch !important;
-    gap:.35rem !important;width:100%;
+    display:flex !important;flex-direction:column !important;
+    gap:.3rem !important;width:100%;
   }
-  #f_stat .fr-checkbox-group{
-    margin:0 !important;width:100%;display:block !important;
-    position:relative;min-height:1.5rem;
+  /* Native checkboxes — avoid DSFR ::before absolute (was clipped left) */
+  #f_stat .statut-opt{
+    display:flex;align-items:center;gap:.5rem;
+    margin:0;padding:0;cursor:pointer;font-size:.75rem;line-height:1.3;
+    color:var(--ink);font-weight:400;
   }
-  #f_stat .fr-checkbox-group .fr-label{
-    font-size:.75rem;display:block;width:100%;
-    white-space:normal;line-height:1.35;
+  #f_stat .statut-opt input{
+    flex:0 0 auto;width:1rem;height:1rem;margin:0;
+    accent-color:var(--text-action-high-blue-france, #000091);
   }
   /* List */
   #list{list-style:none;margin:0;padding:6px 10px 14px}
@@ -440,10 +442,10 @@ function buildStatutChecks(values){
   box.innerHTML = values.map((v,i)=>{
     const id = "f_stat_"+i;
     const checked = prev.has(v) ? " checked" : "";
-    return `<div class="fr-checkbox-group">
+    return `<label class="statut-opt" for="${id}">
       <input type="checkbox" id="${id}" name="f_stat" value="${escapeHtml(v)}"${checked}>
-      <label class="fr-label" for="${id}">${escapeHtml(v)}</label>
-    </div>`;
+      <span>${escapeHtml(v)}</span>
+    </label>`;
   }).join("");
   box.querySelectorAll("input").forEach(inp=>{
     inp.addEventListener("change", apply);
@@ -507,6 +509,7 @@ function apply(){
     cluster.addLayer(m);
     bounds.push([d.lat,d.lng]);
   });
+  shown.sort((a,b)=>String(a.nom||"").localeCompare(String(b.nom||""),"fr",{sensitivity:"base",numeric:true}));
   document.getElementById("count").textContent=shown.length;
   document.getElementById("count2").textContent=shown.length;
   LAST_SHOWN = shown;
