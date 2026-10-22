@@ -145,9 +145,6 @@
   .row.inline{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:6px 10px;margin:4px 0}
   .row.inline .k{margin:0}
   .row.inline .v{font-weight:500}
-  .row-pair{display:flex;flex-wrap:wrap;gap:4px 16px;margin:4px 0}
-  .row-pair .row{margin:0;flex:1 1 auto;min-width:0}
-  .row-pair .row.inline{flex:1 1 140px}
   .row .k{color:var(--muted);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.02em}
   .row .v{flex:1;min-width:0}
   .chips{display:flex;flex-wrap:wrap;gap:4px}
@@ -559,10 +556,6 @@ function showDetail(d){
   const site = d.site ? `<a class="web" href="${escapeHtml(d.site)}" target="_blank" rel="noopener noreferrer">${escapeHtml(d.site)} <span class="sr-only">(nouvel onglet)</span></a>` : "";
   const r = (k,v,inline) => v ? `<div class="row${inline?" inline":""}"><span class="k">${k}</span><span class="v">${escapeHtml(v)}</span></div>` : "";
   const rc = (k,arr) => (arr&&arr.length) ? `<div class="row"><span class="k">${k}</span><span class="v">${chips(arr)}</span></div>` : "";
-  const pair = (...parts) => {
-    const html = parts.filter(Boolean).join("");
-    return html ? `<div class="row-pair">${html}</div>` : "";
-  };
   el.innerHTML = `
     <button type="button" class="close" aria-label="Fermer la fiche">×</button>
     <h2 id="detail-title">${escapeHtml(d.nom||"")}</h2>
@@ -573,7 +566,8 @@ function showDetail(d){
     ${rc("Catégorie de produit", d.cat)}
     ${rc("Activité de l'entreprise", d.act)}
     ${r("Besoin de l'acheteur en réemploi", d.pos)}
-    ${pair(r("Ville", d.ville, true), r("Région", d.reg, true))}
+    ${r("Ville", d.ville, true)}
+    ${r("Région", d.reg, true)}
     ${r("Zone d'intervention", d.zone, true)}
     ${rc("Reconnaissances obtenues (labels, certifications, normes ISO) déclarées par l'entreprise", d.certs)}`;
   el.querySelector(".close").onclick=closeDetail;
